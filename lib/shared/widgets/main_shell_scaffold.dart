@@ -64,7 +64,7 @@ class MainShellScaffold extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.secondary,
         foregroundColor: Colors.white,
-        onPressed: () {},
+        onPressed: () => GoRouter.of(context).push('/product/create'),
         icon: const Icon(Icons.add),
         label: const Text('新增'),
       ),

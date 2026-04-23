@@ -30,3 +30,8 @@ This repository now contains:
 - go_router
 - Drift + SQLite
 - flutter_local_notifications
+
+## App identity
+
+- App name: `Lifer`
+- Package name target: `com.allinist.lifer`

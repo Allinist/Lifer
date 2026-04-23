@@ -204,6 +204,7 @@ CREATE TABLE app_settings (
   currency_code TEXT NULL,
   notifications_enabled INTEGER NOT NULL DEFAULT 1,
   theme_mode TEXT NULL,
+  logo_asset_path TEXT NULL,
   obsidian_vault_path TEXT NULL,
   obsidian_uri_scheme TEXT NULL,
   export_encryption_enabled INTEGER NOT NULL DEFAULT 0,

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lifer/core/constants/app_spacing.dart';
+import 'package:lifer/features/product/application/product_detail_providers.dart';
 import 'package:lifer/shared/widgets/section_card.dart';
 
-class ProductDetailPage extends StatelessWidget {
+class ProductDetailPage extends ConsumerWidget {
   const ProductDetailPage({
     required this.productId,
     super.key,
@@ -11,7 +14,9 @@ class ProductDetailPage extends StatelessWidget {
   final String productId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final detail = ref.watch(productDetailProvider(productId)).valueOrNull;
+
     return Scaffold(
       appBar: AppBar(title: const Text('商品详情')),
       body: SafeArea(
@@ -19,15 +24,17 @@ class ProductDetailPage extends StatelessWidget {
           padding: AppSpacing.pageInsets,
           children: [
             Text(
-              '商品 ID: $productId',
+              '商品 ID: ${detail?.productId ?? productId}',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: AppSpacing.section),
             SectionCard(
               title: '基础信息',
               child: ListTile(
-                title: Text('牛奶'),
-                subtitle: Text('消耗品 · 厨房食材 / 乳制品'),
+                title: Text(detail?.name ?? '未找到商品'),
+                subtitle: Text(
+                  '${detail?.productTypeLabel ?? '--'} · ${detail?.categoryLabel ?? '--'}',
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.section),
@@ -36,16 +43,16 @@ class ProductDetailPage extends StatelessWidget {
               child: Column(
                 children: [
                   ListTile(
-                    title: Text('最近一次购买价格'),
-                    trailing: Text('12.80'),
+                    title: const Text('最近一次购买价格'),
+                    trailing: Text(detail?.latestPriceLabel ?? '--'),
                   ),
                   ListTile(
-                    title: Text('当前库存'),
-                    trailing: Text('2 盒'),
+                    title: const Text('当前库存'),
+                    trailing: Text(detail?.stockLabel ?? '--'),
                   ),
                   ListTile(
-                    title: Text('最近到期'),
-                    trailing: Text('3 天后'),
+                    title: const Text('最近到期'),
+                    trailing: Text(detail?.expiryLabel ?? '--'),
                   ),
                 ],
               ),
@@ -58,19 +65,19 @@ class ProductDetailPage extends StatelessWidget {
                 runSpacing: 12,
                 children: [
                   FilledButton.icon(
-                    onPressed: null,
-                    icon: Icon(Icons.add_shopping_cart_rounded),
-                    label: Text('补货'),
+                    onPressed: () => context.push('/restock/create'),
+                    icon: const Icon(Icons.add_shopping_cart_rounded),
+                    label: const Text('补货'),
                   ),
                   FilledButton.icon(
-                    onPressed: null,
-                    icon: Icon(Icons.remove_circle_outline_rounded),
-                    label: Text('消耗'),
+                    onPressed: () => context.push('/consume/create'),
+                    icon: const Icon(Icons.remove_circle_outline_rounded),
+                    label: const Text('消耗'),
                   ),
                   FilledButton.icon(
-                    onPressed: null,
-                    icon: Icon(Icons.notifications_active_outlined),
-                    label: Text('提醒'),
+                    onPressed: () => context.push('/reminder-rule/create'),
+                    icon: const Icon(Icons.notifications_active_outlined),
+                    label: const Text('提醒'),
                   ),
                 ],
               ),

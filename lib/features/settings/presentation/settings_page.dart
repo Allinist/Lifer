@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/core/constants/app_spacing.dart';
+import 'package:lifer/features/settings/application/settings_providers.dart';
 import 'package:lifer/shared/widgets/app_page_scaffold.dart';
 import 'package:lifer/shared/widgets/section_card.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLogo = ref.watch(currentLogoAssetProvider);
+    final settingsActions = ref.watch(settingsActionsProvider);
+
     return AppPageScaffold(
       title: '设置',
       children: [
@@ -26,7 +31,7 @@ class SettingsPage extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(height: AppSpacing.section),
+        const SizedBox(height: AppSpacing.section),
         const SectionCard(
           title: '通知与提醒',
           child: Column(
@@ -43,7 +48,7 @@ class SettingsPage extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(height: AppSpacing.section),
+        const SizedBox(height: AppSpacing.section),
         const SectionCard(
           title: '语言、货币与 Obsidian',
           child: Column(
@@ -66,7 +71,82 @@ class SettingsPage extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: AppSpacing.section),
+        SectionCard(
+          title: '应用 Logo',
+          subtitle: '默认使用 Lifer.png，可切换为 Logo.png',
+          child: Row(
+            children: [
+              Expanded(
+                child: _LogoOption(
+                  title: 'Lifer',
+                  assetPath: defaultLogoAsset,
+                  selected: currentLogo == defaultLogoAsset,
+                  onTap: () {
+                    settingsActions.saveLogoAsset(defaultLogoAsset);
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _LogoOption(
+                  title: 'Logo',
+                  assetPath: alternateLogoAsset,
+                  selected: currentLogo == alternateLogoAsset,
+                  onTap: () {
+                    settingsActions.saveLogoAsset(alternateLogoAsset);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+}
+
+class _LogoOption extends StatelessWidget {
+  const _LogoOption({
+    required this.title,
+    required this.assetPath,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String assetPath;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: selected
+                ? Theme.of(context).colorScheme.secondary
+                : Theme.of(context).dividerColor,
+            width: selected ? 1.4 : 0.8,
+          ),
+        ),
+        child: Column(
+          children: [
+            SizedBox(
+              width: 54,
+              height: 54,
+              child: Image.asset(assetPath),
+            ),
+            const SizedBox(height: 10),
+            Text(title),
+          ],
+        ),
+      ),
     );
   }
 }

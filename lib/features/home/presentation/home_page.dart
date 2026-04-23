@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lifer/app/theme/app_colors.dart';
 import 'package:lifer/core/constants/app_spacing.dart';
+import 'package:lifer/features/home/application/home_models.dart';
+import 'package:lifer/features/home/application/home_providers.dart';
+import 'package:lifer/features/settings/application/settings_providers.dart';
 import 'package:lifer/shared/widgets/app_page_scaffold.dart';
 import 'package:lifer/shared/widgets/section_card.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final logoAsset = ref.watch(currentLogoAssetProvider);
+    final pinnedCards = ref.watch(homePinnedCardProvider).valueOrNull ?? const <HomeProductCardData>[];
+    final reminderCards =
+        ref.watch(homeReminderCardProvider).valueOrNull ?? const <ReminderCardData>[];
+
     return AppPageScaffold(
       title: 'Lifer',
       actions: [
@@ -18,21 +27,25 @@ class HomePage extends StatelessWidget {
           icon: const Icon(Icons.search_rounded),
         ),
       ],
-      children: const [
-        _HeroSummary(),
-        SizedBox(height: AppSpacing.section),
-        _PinnedProductsSection(),
-        SizedBox(height: AppSpacing.section),
-        _ReminderProductsSection(),
-        SizedBox(height: AppSpacing.section),
-        _OtherProductsSection(),
+      children: [
+        _HeroSummary(logoAsset: logoAsset),
+        const SizedBox(height: AppSpacing.section),
+        _PinnedProductsSection(pinnedProducts: pinnedCards),
+        const SizedBox(height: AppSpacing.section),
+        _ReminderProductsSection(reminderEvents: reminderCards),
+        const SizedBox(height: AppSpacing.section),
+        const _OtherProductsSection(),
       ],
     );
   }
 }
 
 class _HeroSummary extends StatelessWidget {
-  const _HeroSummary();
+  const _HeroSummary({
+    required this.logoAsset,
+  });
+
+  final String logoAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +62,28 @@ class _HeroSummary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Image.asset(logoAsset),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Lifer',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           Text(
             '把价格、库存和提醒放进同一张生活仪表盘',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -57,7 +92,7 @@ class _HeroSummary extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '今天有 3 个补货提醒，2 个商品接近保质期，固定商品里有 1 个价格回落。',
+            '固定商品、提醒商品和库存状态会随着你的录入实时变化。',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Colors.white.withOpacity(0.88),
                 ),
@@ -69,7 +104,11 @@ class _HeroSummary extends StatelessWidget {
 }
 
 class _PinnedProductsSection extends StatelessWidget {
-  const _PinnedProductsSection();
+  const _PinnedProductsSection({
+    required this.pinnedProducts,
+  });
+
+  final List<HomeProductCardData> pinnedProducts;
 
   @override
   Widget build(BuildContext context) {
@@ -83,29 +122,49 @@ class _PinnedProductsSection extends StatelessWidget {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         childAspectRatio: 0.94,
-        children: const [
-          _ProductCard(
-            name: '牛奶',
-            metaTop: '最近一次 12.80',
-            metaBottom: '库存 2 盒 · 3 天后到期',
-            badge: '固定',
-            badgeColor: AppColors.secondary,
-          ),
-          _ProductCard(
-            name: '纸巾',
-            metaTop: '最近一次 24.50',
-            metaBottom: '库存 6 包 · 预计 16 天',
-            badge: '固定',
-            badgeColor: AppColors.secondary,
-          ),
-        ],
+        children: pinnedProducts.isEmpty
+            ? const [
+                _ProductCard(
+                  productId: 'demo-milk',
+                  name: '牛奶',
+                  metaTop: '最近一次 12.80',
+                  metaBottom: '库存 2 盒 · 3 天后到期',
+                  badge: '固定',
+                  badgeColor: AppColors.secondary,
+                ),
+                _ProductCard(
+                  productId: 'demo-tissue',
+                  name: '纸巾',
+                  metaTop: '最近一次 24.50',
+                  metaBottom: '库存 6 包 · 预计 16 天',
+                  badge: '固定',
+                  badgeColor: AppColors.secondary,
+                ),
+              ]
+            : pinnedProducts
+                .take(6)
+                .map(
+                  (product) => _ProductCard(
+                    productId: product.productId,
+                    name: product.name,
+                    metaTop: product.topLine,
+                    metaBottom: product.bottomLine,
+                    badge: '固定',
+                    badgeColor: AppColors.secondary,
+                  ),
+                )
+                .toList(),
       ),
     );
   }
 }
 
 class _ReminderProductsSection extends StatelessWidget {
-  const _ReminderProductsSection();
+  const _ReminderProductsSection({
+    required this.reminderEvents,
+  });
+
+  final List<ReminderCardData> reminderEvents;
 
   @override
   Widget build(BuildContext context) {
@@ -117,28 +176,47 @@ class _ReminderProductsSection extends StatelessWidget {
         child: const Text('查看全部'),
       ),
       child: Column(
-        children: const [
-          _ReminderTile(
-            title: '鸡蛋',
-            subtitle: '库存只剩 2 枚，建议今晚补货',
-            urgencyLabel: '库存低',
-            color: AppColors.warning,
-          ),
-          SizedBox(height: 12),
-          _ReminderTile(
-            title: '菠菜',
-            subtitle: '距离到期还有 1 天',
-            urgencyLabel: '快到期',
-            color: AppColors.danger,
-          ),
-          SizedBox(height: 12),
-          _ReminderTile(
-            title: '洗衣液',
-            subtitle: '价格低于目标价 8%',
-            urgencyLabel: '价格回落',
-            color: AppColors.success,
-          ),
-        ],
+        children: reminderEvents.isEmpty
+            ? const [
+                _ReminderTile(
+                  title: '鸡蛋',
+                  subtitle: '库存只剩 2 枚，建议今晚补货',
+                  urgencyLabel: '库存低',
+                  color: AppColors.warning,
+                ),
+                SizedBox(height: 12),
+                _ReminderTile(
+                  title: '菠菜',
+                  subtitle: '距离到期还有 1 天',
+                  urgencyLabel: '快到期',
+                  color: AppColors.danger,
+                ),
+                SizedBox(height: 12),
+                _ReminderTile(
+                  title: '洗衣液',
+                  subtitle: '价格低于目标价 8%',
+                  urgencyLabel: '价格回落',
+                  color: AppColors.success,
+                ),
+              ]
+            : reminderEvents
+                .take(5)
+                .map(
+                  (event) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _ReminderTile(
+                      title: event.title,
+                      subtitle: event.subtitle,
+                      urgencyLabel: '提醒',
+                      color: event.urgencyScore >= 80
+                          ? AppColors.danger
+                          : event.urgencyScore >= 50
+                              ? AppColors.warning
+                              : AppColors.success,
+                    ),
+                  ),
+                )
+                .toList(),
       ),
     );
   }
@@ -192,6 +270,7 @@ class _ExpandableGroup extends StatelessWidget {
 
 class _ProductCard extends StatelessWidget {
   const _ProductCard({
+    required this.productId,
     required this.name,
     required this.metaTop,
     required this.metaBottom,
@@ -199,6 +278,7 @@ class _ProductCard extends StatelessWidget {
     required this.badgeColor,
   });
 
+  final String productId;
   final String name;
   final String metaTop;
   final String metaBottom;
@@ -209,7 +289,7 @@ class _ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(22),
-      onTap: () => context.push('/product/demo-$name'),
+      onTap: () => context.push('/product/$productId'),
       child: Ink(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(

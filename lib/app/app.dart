@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lifer/app/app_identity.dart';
 import 'package:lifer/app/router/app_router.dart';
 import 'package:lifer/app/theme/app_theme.dart';
 
@@ -11,7 +12,7 @@ class LiferApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'Lifer',
+      title: AppIdentity.appName,
       debugShowCheckedModeBanner: false,
       theme: buildLiferTheme(),
       routerConfig: router,

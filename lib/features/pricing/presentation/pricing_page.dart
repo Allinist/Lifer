@@ -1,33 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/app/theme/app_colors.dart';
+import 'package:lifer/core/utils/formatters.dart';
 import 'package:lifer/core/constants/app_spacing.dart';
+import 'package:lifer/features/pricing/application/pricing_providers.dart';
 import 'package:lifer/shared/widgets/app_page_scaffold.dart';
 import 'package:lifer/shared/widgets/section_card.dart';
 
-class PricingPage extends StatelessWidget {
+class PricingPage extends ConsumerWidget {
   const PricingPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedProduct = ref.watch(selectedPricingProductProvider).valueOrNull;
+    final pricePoints = ref.watch(selectedProductPricePointsProvider);
+    final priceStats = ref.watch(selectedProductPriceStatsProvider);
+
     return AppPageScaffold(
       title: '价格',
       children: [
-        TextField(
-          decoration: const InputDecoration(
-            hintText: '搜索商品、别名或分类',
-            prefixIcon: Icon(Icons.search_rounded),
+        FutureBuilder(
+          future: ref.read(allProductsProvider).load(),
+          builder: (context, snapshot) {
+            final products = snapshot.data ?? const [];
+            final currentId = ref.watch(selectedPricingProductIdProvider);
+
+            return DropdownButtonFormField<String>(
+              initialValue: currentId,
+              decoration: const InputDecoration(
+                labelText: '选择商品',
+                prefixIcon: Icon(Icons.search_rounded),
+              ),
+              items: products
+                  .map(
+                    (product) => DropdownMenuItem<String>(
+                      value: product.id,
+                      child: Text(product.name),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                ref.read(selectedPricingProductIdProvider.notifier).state = value;
+              },
+            );
+          },
+        ),
+        const SizedBox(height: AppSpacing.section),
+        SectionCard(
+          title: '商品价格分析',
+          subtitle: selectedProduct == null ? '先选择商品' : selectedProduct.name,
+          child: _ChartPlaceholder(
+            title: selectedProduct?.name ?? '价格曲线',
+            points: pricePoints.isEmpty
+                ? const ['04/01 10.8', '04/08 11.2', '04/15 12.8', '04/22 11.6']
+                : pricePoints
+                    .map((point) => '${point.label} ${Formatters.currencyFromMinor(point.amountMinor)}')
+                    .toList(),
           ),
         ),
         const SizedBox(height: AppSpacing.section),
-        const SectionCard(
+        SectionCard(
           title: '商品价格分析',
           subtitle: '全部 / 时间范围 / 渠道对比',
-          child: _ChartPlaceholder(
-            title: '牛奶价格曲线',
-            points: ['04/01 10.8', '04/08 11.2', '04/15 12.8', '04/22 11.6'],
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _StatChip(
+                label: '记录数',
+                value: '${priceStats.recordCount}',
+              ),
+              _StatChip(
+                label: '最近价格',
+                value: Formatters.currencyFromMinor(priceStats.latestAmountMinor),
+              ),
+              _StatChip(
+                label: '历史最低',
+                value: Formatters.currencyFromMinor(priceStats.lowestAmountMinor),
+              ),
+              _StatChip(
+                label: '历史最高',
+                value: Formatters.currencyFromMinor(priceStats.highestAmountMinor),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: AppSpacing.section),
         const SectionCard(
           title: '统计摘要',
           child: Wrap(
