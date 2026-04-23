@@ -1,0 +1,26 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+build/
+
+# Generated
+*.g.dart
+*.freezed.dart
+
+# IDE
+.idea/
+.vscode/
+
+# Platform folders created by flutter create
+android/
+ios/
+linux/
+macos/
+web/
+windows/
+
+# Misc
+coverage/

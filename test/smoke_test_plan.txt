@@ -1,0 +1,6 @@
+Pending once Flutter SDK is installed:
+
+1. flutter pub get
+2. flutter analyze
+3. flutter test
+4. flutter run
