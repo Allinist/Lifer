@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartTrack - Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f5f3f6",
+                        "tertiary": "#312300",
+                        "on-surface-variant": "#45464e",
+                        "secondary": "#006a6a",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#76d6d5",
+                        "primary-container": "#2e3a59",
+                        "on-secondary-container": "#006e6e",
+                        "on-secondary-fixed": "#002020",
+                        "on-primary-container": "#98a4c9",
+                        "surface-tint": "#525e7f",
+                        "on-primary-fixed-variant": "#3a4666",
+                        "tertiary-container": "#4a380c",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#dae2ff",
+                        "tertiary-fixed-dim": "#dfc38b",
+                        "on-surface": "#1b1b1e",
+                        "on-secondary": "#ffffff",
+                        "background": "#fbf8fc",
+                        "inverse-on-surface": "#f2f0f3",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fbf8fc",
+                        "surface": "#fbf8fc",
+                        "on-tertiary-container": "#bca26c",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#eae7ea",
+                        "on-background": "#1b1b1e",
+                        "outline-variant": "#c6c6ce",
+                        "inverse-primary": "#bac6ec",
+                        "surface-dim": "#dbd9dc",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#303033",
+                        "primary-fixed-dim": "#bac6ec",
+                        "outline": "#75777e",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#261a00",
+                        "primary": "#182442",
+                        "secondary-container": "#90efef",
+                        "surface-container": "#f0edf0",
+                        "surface-container-highest": "#e4e2e5",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#574417",
+                        "secondary-fixed": "#93f2f2",
+                        "on-primary-fixed": "#0d1a38",
+                        "tertiary-fixed": "#fddfa4",
+                        "surface-variant": "#e4e2e5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "margin-tablet": "24px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "data-tabular": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-price": ["Inter"],
+                        "body-base": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "data-tabular": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-price": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .icon-fill { font-variation-settings: 'FILL' 1; }
+        /* Hide scrollbar for clean look */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .ambient-shadow {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md font-['Inter'] tracking-tight docked full-width top-0 sticky z-50 border-b border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none">
+<div class="flex items-center justify-between px-4 h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-indigo-700 dark:text-indigo-400">inventory_2</span>
+<h1 class="text-lg font-bold text-indigo-900 dark:text-indigo-100">SmartTrack</h1>
+</div>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors rounded-full active:opacity-70 transition-all duration-200">
+<span class="material-symbols-outlined text-indigo-700 dark:text-indigo-400">search</span>
+</button>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-margin-mobile md:px-margin-tablet pt-lg space-y-lg">
+<!-- Search & Filter Area -->
+<section class="space-y-md">
+<div class="relative flex items-center bg-surface-container-lowest rounded-full border border-outline-variant px-md py-sm focus-within:border-secondary focus-within:ring-1 focus-within:ring-secondary transition-all ambient-shadow">
+<span class="material-symbols-outlined text-outline mr-sm">search</span>
+<input class="w-full bg-transparent border-none outline-none font-body-base text-body-base text-on-surface placeholder:text-outline-variant focus:ring-0 p-0" placeholder="Search inventory, categories, or locations..." type="text"/>
+</div>
+<div class="flex gap-sm overflow-x-auto no-scrollbar pb-xs">
+<button class="whitespace-nowrap px-md py-xs rounded-full bg-primary text-on-primary font-body-base text-body-base border border-transparent">All Items</button>
+<button class="whitespace-nowrap px-md py-xs rounded-full bg-surface-container-lowest text-on-surface-variant font-body-base text-body-base border border-outline-variant hover:bg-surface-container-low transition-colors">Consumables</button>
+<button class="whitespace-nowrap px-md py-xs rounded-full bg-surface-container-lowest text-on-surface-variant font-body-base text-body-base border border-outline-variant hover:bg-surface-container-low transition-colors">Office Supplies</button>
+<button class="whitespace-nowrap px-md py-xs rounded-full bg-surface-container-lowest text-on-surface-variant font-body-base text-body-base border border-outline-variant hover:bg-surface-container-low transition-colors">Durable Assets</button>
+<button class="whitespace-nowrap px-md py-xs rounded-full bg-surface-container-lowest text-on-surface-variant font-body-base text-body-base border border-outline-variant hover:bg-surface-container-low transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">tune</span> Filters
+                </button>
+</div>
+</section>
+<!-- Consumption Curve (Chart) -->
+<section class="bg-surface-container-lowest rounded-xl ambient-shadow overflow-hidden border border-surface-container-highest">
+<div class="p-md border-b border-surface-container flex justify-between items-center bg-surface">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-xs">
+<span class="material-symbols-outlined text-secondary">monitoring</span>
+                    Consumption Trend
+                </h2>
+<div class="bg-surface-container rounded-lg p-unit flex gap-unit">
+<button class="px-sm py-unit rounded-md bg-surface-container-lowest shadow-sm font-data-tabular text-data-tabular text-on-surface">1M</button>
+<button class="px-sm py-unit rounded-md text-on-surface-variant font-data-tabular text-data-tabular">3M</button>
+</div>
+</div>
+<div class="p-md h-48 relative w-full flex items-end">
+<!-- Abstract Chart Representation using standard elements and gradients -->
+<div class="w-full h-full relative border-l border-b border-surface-variant flex items-end px-unit pb-unit gap-unit">
+<!-- Area fill simulation -->
+<div class="absolute inset-0 bg-gradient-to-t from-secondary/10 to-transparent clip-path-chart"></div>
+<!-- Chart line simulation -->
+<svg class="absolute inset-0 h-full w-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,80 C20,60 40,90 60,40 C80,20 100,50 100,50" fill="none" stroke="var(--tw-colors-secondary)" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+<!-- Y-Axis labels -->
+<div class="absolute left-0 bottom-0 h-full flex flex-col justify-between text-[10px] text-outline-variant -ml-6 py-unit">
+<span>1k</span><span>500</span><span>0</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Consumables -->
+<section>
+<div class="flex justify-between items-baseline mb-md">
+<h3 class="font-headline-md text-headline-md text-on-surface">Consumables</h3>
+<span class="font-data-tabular text-data-tabular text-secondary cursor-pointer">View All</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Item Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl ambient-shadow p-md border border-surface-container flex flex-col gap-sm">
+<div class="flex gap-md items-start">
+<div class="w-16 h-16 rounded-lg overflow-hidden bg-surface-container flex-shrink-0">
+<img alt="Specialty roasted coffee beans in a craft paper bag" class="w-full h-full object-cover" data-alt="Specialty roasted coffee beans in a craft paper bag on a clean white surface with soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeKlZNNp8KRf2kE3HEiNocafZHKQW8gWzdPWJk554NNyQkuS8vWJETDybUIUf3qk8Goopl8-llpinH86sYqXx1zZVrb_QAcV6ZtuUEGAHXAqxcsPtlpMmK7w1znNXMTt4hkEECZPKpWMCRfvP4zaQOrxr_w_ljV_d3wY4mccWAv5dnaRK-0uTpFiayfab3cuaeU6BcWkafLeaY-HlnBBnxs_TP3MpZ_pILY0u2hdfn0CPaCA1hOesDwG91vsuDjK3hluhEWHECsFM"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-body-base text-body-base font-semibold text-on-surface">Premium Coffee Beans</h4>
+<p class="font-data-tabular text-data-tabular text-outline">SKU: CB-9021</p>
+</div>
+<span class="bg-error-container text-on-error-container font-label-caps text-label-caps px-2 py-1 rounded-full flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">warning</span> Low Stock
+                                </span>
+</div>
+<div class="mt-sm flex items-center gap-xs text-on-surface-variant font-data-tabular text-data-tabular">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Pantry A, Shelf 2
+                            </div>
+</div>
+</div>
+<div class="space-y-xs mt-sm">
+<div class="flex justify-between font-data-tabular text-data-tabular">
+<span class="text-on-surface-variant">Stock Level</span>
+<span class="font-semibold text-error">12 / 50 Bags</span>
+</div>
+<div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-error rounded-full" style="width: 24%"></div>
+</div>
+</div>
+</div>
+<!-- Item Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl ambient-shadow p-md border border-surface-container flex flex-col gap-sm">
+<div class="flex gap-md items-start">
+<div class="w-16 h-16 rounded-lg overflow-hidden bg-surface-container flex-shrink-0">
+<img alt="Box of white printer paper reams" class="w-full h-full object-cover" data-alt="Stack of crisp white printer paper reams in neat corporate packaging under bright neutral lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmIJUD6wed27rwX2tcWcHkJnBqpxY1QpxdM_voSYhvRZfIMmLbghKtrrFRwlxsfygVRPjfYflFYxgZLWN164Ps-UbdjFm4nTOinrdwTMEQn0ajHk9ivHcKQvKpMeRX-Udpttld0pj8UkH2BwOX_zsAhjz4p9tpLYvHXkjmWIKxrl_nWshXkElUOq4-NXfQVZ146Ezezxb3hhH-kerHZhgMqsmvgNDAtbpNYDBV-2ta_EDFwqp4ppg2BquYq-wzqH_PBx8cssxDEFI"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-body-base text-body-base font-semibold text-on-surface">A4 Printer Paper</h4>
+<p class="font-data-tabular text-data-tabular text-outline">SKU: PP-1044</p>
+</div>
+<span class="bg-tertiary-container text-on-tertiary-container font-label-caps text-label-caps px-2 py-1 rounded-full flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">schedule</span> Exp: 2 Months
+                                </span>
+</div>
+<div class="mt-sm flex items-center gap-xs text-on-surface-variant font-data-tabular text-data-tabular">
+<span class="material-symbols-outlined text-[16px]">storefront</span> Supplier: OfficeDepot
+                            </div>
+</div>
+</div>
+<div class="space-y-xs mt-sm">
+<div class="flex justify-between font-data-tabular text-data-tabular">
+<span class="text-on-surface-variant">Stock Level</span>
+<span class="font-semibold text-on-surface">145 / 200 Reams</span>
+</div>
+<div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 72%"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Durables -->
+<section>
+<div class="flex justify-between items-baseline mb-md">
+<h3 class="font-headline-md text-headline-md text-on-surface">Durable Assets</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Durable Item 1 -->
+<div class="bg-surface-container-lowest rounded-xl ambient-shadow p-md border border-surface-container flex flex-col justify-between">
+<div class="flex justify-between items-start mb-md">
+<div class="flex items-center gap-sm">
+<div class="bg-primary-container text-on-primary-container p-sm rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined">chair_alt</span>
+</div>
+<div>
+<h4 class="font-body-base text-body-base font-semibold text-on-surface">Ergonomic Chairs</h4>
+<span class="bg-surface-container text-on-surface-variant font-label-caps text-label-caps px-2 py-0.5 rounded-full mt-xs inline-block">Qty: 24</span>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data-tabular text-data-tabular text-outline-variant">Avg Daily Cost</p>
+<p class="font-display-price text-display-price text-primary">¥4.50</p>
+</div>
+</div>
+<hr class="border-surface-container mb-sm"/>
+<div class="flex justify-between font-data-tabular text-data-tabular text-on-surface-variant">
+<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-[16px]">calendar_today</span> Start: 2023-01-15</div>
+<div class="flex items-center gap-xs"><span class="material-symbols-outlined text-[16px]">event_busy</span> End: 2026-01-15</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-4 md:right-8 w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-transform hover:scale-105 active:scale-95 z-40">
+<span class="material-symbols-outlined icon-fill text-[28px]">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg text-[10px] font-bold font-['Inter'] uppercase tracking-wider fixed bottom-0 w-full rounded-t-2xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 pb-safe md:hidden">
+<!-- Tab 1: 首页 -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-500 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150 gap-1 w-16" href="#">
+<span class="material-symbols-outlined">home</span>
+<span>首页</span>
+</a>
+<!-- Tab 2: 价格 -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-500 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150 gap-1 w-16" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span>价格</span>
+</a>
+<!-- Tab 3: 库存 (Active) -->
+<a class="flex flex-col items-center justify-center text-teal-600 dark:text-teal-400 scale-110 active:scale-90 transition-transform duration-150 gap-1 w-16" href="#">
+<span class="material-symbols-outlined icon-fill">inventory</span>
+<span>库存</span>
+</a>
+<!-- Tab 4: 笔记 -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-500 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150 gap-1 w-16" href="#">
+<span class="material-symbols-outlined">description</span>
+<span>笔记</span>
+</a>
+<!-- Tab 5: 设置 -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-500 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150 gap-1 w-16" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>设置</span>
+</a>
+</nav>
+<!-- Web Navigation Cluster (Hidden on mobile, visible on md+) - Implementing structural requirement from guide -->
+<nav class="hidden md:flex fixed top-0 left-1/2 -translate-x-1/2 h-16 items-center gap-lg z-50">
+<a class="text-slate-500 dark:text-slate-400 hover:text-indigo-500 font-body-base text-body-base font-semibold" href="#">首页</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-indigo-500 font-body-base text-body-base font-semibold" href="#">价格</a>
+<a class="text-indigo-700 dark:text-indigo-400 font-body-base text-body-base font-bold border-b-2 border-indigo-700 pb-1" href="#">库存</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-indigo-500 font-body-base text-body-base font-semibold" href="#">笔记</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-indigo-500 font-body-base text-body-base font-semibold" href="#">设置</a>
+</nav>
+</body></html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartTrack - Product Management</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config from Design System -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#4a380c",
+                    "tertiary": "#312300",
+                    "surface-variant": "#e4e2e5",
+                    "inverse-surface": "#303033",
+                    "background": "#fbf8fc",
+                    "on-surface": "#1b1b1e",
+                    "primary": "#182442",
+                    "inverse-on-surface": "#f2f0f3",
+                    "primary-fixed": "#dae2ff",
+                    "tertiary-fixed": "#fddfa4",
+                    "primary-container": "#2e3a59",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e4e2e5",
+                    "surface-container": "#f0edf0",
+                    "surface": "#fbf8fc",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#002020",
+                    "on-primary-fixed-variant": "#3a4666",
+                    "surface-container-high": "#eae7ea",
+                    "primary-fixed-dim": "#bac6ec",
+                    "on-tertiary-container": "#bca26c",
+                    "surface-tint": "#525e7f",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#261a00",
+                    "on-tertiary": "#ffffff",
+                    "surface-dim": "#dbd9dc",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#006e6e",
+                    "tertiary-fixed-dim": "#dfc38b",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#c6c6ce",
+                    "on-primary-fixed": "#0d1a38",
+                    "error-container": "#ffdad6",
+                    "surface-container-low": "#f5f3f6",
+                    "outline": "#75777e",
+                    "on-surface-variant": "#45464e",
+                    "secondary-fixed-dim": "#76d6d5",
+                    "on-tertiary-fixed-variant": "#574417",
+                    "on-error-container": "#93000a",
+                    "on-background": "#1b1b1e",
+                    "surface-bright": "#fbf8fc",
+                    "secondary-fixed": "#93f2f2",
+                    "secondary": "#006a6a",
+                    "secondary-container": "#90efef",
+                    "inverse-primary": "#bac6ec",
+                    "on-primary-container": "#98a4c9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "md": "16px",
+                    "xl": "32px",
+                    "gutter": "16px",
+                    "margin-mobile": "16px",
+                    "lg": "24px",
+                    "unit": "4px",
+                    "sm": "8px",
+                    "margin-tablet": "24px"
+            },
+            "fontFamily": {
+                    "body-base": ["Inter"],
+                    "data-tabular": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "display-price": ["Inter"]
+            },
+            "fontSize": {
+                    "body-base": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "data-tabular": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-price": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background antialiased min-h-screen pb-32 pt-20">
+<!-- TopAppBar -->
+<header class="font-inter antialiased fixed top-0 w-full z-50 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between px-4 h-16">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-indigo-900 dark:text-indigo-300" data-icon="inventory_2" data-weight="regular" style="font-variation-settings: 'FILL' 0;">inventory_2</span>
+<span class="text-lg font-bold tracking-tight text-indigo-900 dark:text-indigo-100">SmartTrack</span>
+</div>
+<div class="flex items-center">
+<img alt="User Profile" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="professional headshot of user smiling softly against neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANYNTMtzhOqPExJI3llI_hPEsPrcq52N6voK3oF2XFQESZzagJHcytQxiTKfIgsyZYbezriIcfpJir0yjircJEf2b3fkQ1vxGg9MqjeBic7UJGpOutkjjhOkzibOHg3VJ-HCwX6vNp-LF6UAmfPLrSUKG0AbiR-THDD2juf9rSqQ-xHL2RXTODPdv_sfYZcCAo7TXyI-Y6gA8O0Q8coJkoee-Y7owWXl8eJxaXWRDvGS7syYQ3isW0Y1sVI41KpCS-UjqXxX7Szf8"/>
+</div>
+</header>
+<!-- Main Content Grid -->
+<main class="container mx-auto px-margin-mobile md:px-margin-tablet grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Product Hero Card (Span 12) -->
+<div class="md:col-span-12 bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.04)] p-lg flex flex-col md:flex-row gap-lg items-start border border-outline-variant/30">
+<div class="w-full md:w-48 h-48 rounded-lg overflow-hidden shrink-0 bg-surface-container flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="close up of roasted coffee beans spilling from a burlap sack on dark wooden table with dramatic moody lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA23Tb4axcXG2kQhJRx3-QzvCgTnTJLuLsAXKxQotg2S1ayProHbq6gAZL-8CFh_AN0nVn3C3UiljqkieHKu0ni3ODbZwuaTIvKOH8GROn3j1xDwL65O6phsEJbo5yD3deTeTO7emkMJr7j7kmP00o-884z_NFQKdv1Pk0U_E0PyKWRIk3CG3TACcUYP4G5LZf0xh9clyhL-EEVfHD4Z-1RZvU_LWLlHUabbXVnuZvZtIH3UCrvCz0Cdc2M40NxQGeoR_SxtiIDUZ0"/>
+</div>
+<div class="flex-1 flex flex-col justify-between h-full w-full">
+<div>
+<div class="flex items-center justify-between mb-sm">
+<span class="font-label-caps text-label-caps text-secondary bg-secondary-container/30 px-sm py-xs rounded-full">ACTIVE SKU</span>
+<span class="font-data-tabular text-data-tabular text-outline">ID: COF-ARB-001</span>
+</div>
+<h1 class="font-display-price text-display-price text-on-surface mb-xs">Premium Arabica Blend</h1>
+<p class="font-body-base text-body-base text-on-surface-variant">High-yield whole bean coffee for espresso machines. Medium dark roast.</p>
+</div>
+<div class="mt-lg flex flex-wrap gap-md">
+<button class="bg-primary hover:bg-primary/90 text-on-primary font-label-caps text-label-caps px-lg py-sm rounded-full flex items-center gap-xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">edit_note</span>
+                        Log Consumption
+                    </button>
+<button class="border border-secondary text-secondary hover:bg-secondary/5 font-label-caps text-label-caps px-lg py-sm rounded-full flex items-center gap-xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+                        Add Stock
+                    </button>
+</div>
+</div>
+</div>
+<!-- Stock Management (Span 8) -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.04)] p-lg border border-outline-variant/30 flex flex-col">
+<div class="flex items-center justify-between mb-lg">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline">monitoring</span>
+                    Stock Status
+                </h2>
+<span class="material-symbols-outlined text-outline">more_vert</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-lg mb-lg">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-outline mb-xs">CURRENT INVENTORY</span>
+<div class="flex items-baseline gap-xs">
+<span class="font-display-price text-display-price text-primary">45.5</span>
+<span class="font-body-base text-body-base text-on-surface-variant">kg</span>
+</div>
+</div>
+<div class="flex flex-col border-l border-outline-variant/30 pl-md hidden sm:flex">
+<span class="font-label-caps text-label-caps text-outline mb-xs">CONSUMPTION RATE</span>
+<div class="flex items-baseline gap-xs">
+<span class="font-headline-md text-headline-md text-on-surface">2.4</span>
+<span class="font-body-base text-body-base text-on-surface-variant">kg / wk</span>
+</div>
+</div>
+<div class="flex flex-col border-l border-outline-variant/30 pl-md hidden sm:flex">
+<span class="font-label-caps text-label-caps text-outline mb-xs">EST. DEPLETION</span>
+<div class="flex items-baseline gap-xs">
+<span class="font-headline-md text-headline-md text-on-surface">18</span>
+<span class="font-body-base text-body-base text-on-surface-variant">Weeks</span>
+</div>
+</div>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-sm">
+<label class="font-label-caps text-label-caps text-on-surface-variant">RESTOCK THRESHOLD (15 kg)</label>
+<span class="font-data-tabular text-data-tabular text-secondary">Healthy</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-secondary w-1/3"></div>
+<div class="h-full bg-primary/20 w-2/3 border-l-2 border-surface-container-lowest"></div>
+</div>
+</div>
+</div>
+<!-- Purchase Info (Span 4) -->
+<div class="md:col-span-4 bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.04)] p-lg border border-outline-variant/30 flex flex-col">
+<div class="flex items-center gap-sm mb-lg">
+<span class="material-symbols-outlined text-outline">shopping_cart</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Purchasing</h2>
+</div>
+<div class="space-y-md">
+<div class="p-md bg-surface rounded-lg border border-outline-variant/20">
+<span class="font-label-caps text-label-caps text-outline block mb-xs">LAST PURCHASE PRICE</span>
+<div class="font-display-price text-display-price text-primary-fixed-variant">$14.20 <span class="text-body-base font-body-base text-outline">/ kg</span></div>
+<span class="font-data-tabular text-data-tabular text-secondary flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-[14px]">trending_down</span> 5% vs avg
+                    </span>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-outline block mb-xs">PREFERRED VENDOR</span>
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed font-headline-md text-headline-md">G</div>
+<div>
+<p class="font-data-tabular text-data-tabular text-on-surface">Global Bean Co.</p>
+<p class="font-body-base text-[12px] text-outline">Lead time: 3-5 days</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Expiry Tracking (Span 6) -->
+<div class="md:col-span-6 bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.04)] p-lg border border-outline-variant/30">
+<div class="flex items-center justify-between mb-lg">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline">event_busy</span>
+                    Expiry Tracking
+                </h2>
+</div>
+<div class="space-y-sm">
+<!-- Batch Item -->
+<div class="flex justify-between items-center py-md border-b border-outline-variant/20 last:border-0">
+<div class="flex flex-col">
+<span class="font-data-tabular text-data-tabular text-on-surface">Batch B-882</span>
+<span class="font-body-base text-[14px] text-outline">Qty: 10.5 kg</span>
+</div>
+<div class="text-right flex flex-col items-end">
+<span class="font-data-tabular text-data-tabular text-on-surface mb-xs">Oct 12, 2024</span>
+<span class="font-label-caps text-[10px] text-error bg-error-container/50 px-xs py-xs rounded">IN 14 DAYS</span>
+</div>
+</div>
+<!-- Batch Item -->
+<div class="flex justify-between items-center py-md border-b border-outline-variant/20 last:border-0">
+<div class="flex flex-col">
+<span class="font-data-tabular text-data-tabular text-on-surface">Batch C-901</span>
+<span class="font-body-base text-[14px] text-outline">Qty: 35.0 kg</span>
+</div>
+<div class="text-right flex flex-col items-end">
+<span class="font-data-tabular text-data-tabular text-on-surface mb-xs">Jan 05, 2025</span>
+<span class="font-label-caps text-[10px] text-secondary bg-secondary-container/50 px-xs py-xs rounded">HEALTHY</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Locations (Span 6) -->
+<div class="md:col-span-6 bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.04)] p-lg border border-outline-variant/30">
+<div class="flex items-center justify-between mb-lg">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline">shelves</span>
+                    Storage Locations
+                </h2>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container p-xs rounded-full transition-colors">add</button>
+</div>
+<div class="space-y-sm">
+<!-- Location Item -->
+<div class="flex items-center gap-md p-md rounded-lg bg-surface hover:bg-surface-container-low transition-colors border border-transparent hover:border-outline-variant/20 cursor-pointer">
+<span class="material-symbols-outlined text-secondary">location_on</span>
+<div class="flex-1">
+<p class="font-data-tabular text-data-tabular text-on-surface">Main Pantry</p>
+<p class="font-body-base text-[14px] text-outline">Zone A • Shelf 02</p>
+</div>
+<span class="font-data-tabular text-data-tabular text-on-surface-variant">35.0 kg</span>
+</div>
+<!-- Location Item -->
+<div class="flex items-center gap-md p-md rounded-lg bg-surface hover:bg-surface-container-low transition-colors border border-transparent hover:border-outline-variant/20 cursor-pointer">
+<span class="material-symbols-outlined text-outline">location_on</span>
+<div class="flex-1">
+<p class="font-data-tabular text-data-tabular text-on-surface">Basement Storage</p>
+<p class="font-body-base text-[14px] text-outline">Rack C • Bin 4</p>
+</div>
+<span class="font-data-tabular text-data-tabular text-on-surface-variant">10.5 kg</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden font-inter text-[10px] font-bold uppercase tracking-wider fixed bottom-0 w-full z-50 rounded-t-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] flex justify-around items-center h-20 pb-safe w-full px-2">
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 pt-1 hover:text-indigo-900 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-200 cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center text-teal-600 dark:text-teal-400 pt-1 hover:text-indigo-900 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-200 cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="list_alt" style="font-variation-settings: 'FILL' 1;">list_alt</span>
+<span>Inventory</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 pt-1 hover:text-indigo-900 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-200 cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="qr_code_scanner">qr_code_scanner</span>
+<span>Scan</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 pt-1 hover:text-indigo-900 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-200 cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="settings">settings</span>
+<span>Settings</span>
+</div>
+</nav>
+</body></html>

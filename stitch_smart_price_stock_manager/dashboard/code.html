@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartTrack - 首页</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f5f3f6",
+                    "tertiary": "#312300",
+                    "on-surface-variant": "#45464e",
+                    "secondary": "#006a6a",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#76d6d5",
+                    "primary-container": "#2e3a59",
+                    "on-secondary-container": "#006e6e",
+                    "on-secondary-fixed": "#002020",
+                    "on-primary-container": "#98a4c9",
+                    "surface-tint": "#525e7f",
+                    "on-primary-fixed-variant": "#3a4666",
+                    "tertiary-container": "#4a380c",
+                    "on-secondary-fixed-variant": "#004f4f",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#dae2ff",
+                    "tertiary-fixed-dim": "#dfc38b",
+                    "on-surface": "#1b1b1e",
+                    "on-secondary": "#ffffff",
+                    "background": "#fbf8fc",
+                    "inverse-on-surface": "#f2f0f3",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#fbf8fc",
+                    "surface": "#fbf8fc",
+                    "on-tertiary-container": "#bca26c",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#eae7ea",
+                    "on-background": "#1b1b1e",
+                    "outline-variant": "#c6c6ce",
+                    "inverse-primary": "#bac6ec",
+                    "surface-dim": "#dbd9dc",
+                    "on-error": "#ffffff",
+                    "inverse-surface": "#303033",
+                    "primary-fixed-dim": "#bac6ec",
+                    "outline": "#75777e",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed": "#261a00",
+                    "primary": "#182442",
+                    "secondary-container": "#90efef",
+                    "surface-container": "#f0edf0",
+                    "surface-container-highest": "#e4e2e5",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#574417",
+                    "secondary-fixed": "#93f2f2",
+                    "on-primary-fixed": "#0d1a38",
+                    "tertiary-fixed": "#fddfa4",
+                    "surface-variant": "#e4e2e5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "sm": "8px",
+                    "margin-tablet": "24px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "unit": "4px",
+                    "margin-mobile": "16px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter"],
+                    "data-tabular": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "display-price": ["Inter"],
+                    "body-base": ["Inter"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                    "data-tabular": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                    "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                    "display-price": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                    "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24 font-body-base">
+<!-- TopAppBar -->
+<header class="bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md docked full-width top-0 sticky z-50 border-b border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none flex items-center justify-between px-4 h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="text-indigo-700 dark:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors rounded-full p-2 active:opacity-70 transition-all duration-200">
+<span class="material-symbols-outlined">inventory_2</span>
+</button>
+<h1 class="font-['Inter'] tracking-tight text-lg font-bold text-indigo-900 dark:text-indigo-100">SmartTrack</h1>
+</div>
+<button class="text-indigo-700 dark:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors rounded-full p-2 active:opacity-70 transition-all duration-200">
+<span class="material-symbols-outlined">search</span>
+</button>
+</header>
+<main class="px-margin-mobile md:px-margin-tablet py-md max-w-7xl mx-auto space-y-xl">
+<!-- Section 1: 固定商品 -->
+<section>
+<div class="flex items-center justify-between mb-md">
+<h2 class="font-headline-md text-headline-md text-on-background flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">push_pin</span>
+                    固定商品
+                </h2>
+<button class="text-secondary hover:text-on-secondary-container">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl soft-shadow p-md border border-surface-variant hover:border-secondary transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 bg-secondary/10 px-2 py-1 rounded-bl-lg">
+<span class="font-label-caps text-label-caps text-secondary">常用</span>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-surface-tint">
+<span class="material-symbols-outlined text-[28px]">water_drop</span>
+</div>
+<div>
+<h3 class="font-body-base text-body-base font-semibold text-on-surface truncate">农夫山泉 5L</h3>
+<p class="font-data-tabular text-data-tabular text-on-surface-variant mt-1">库存: <span class="text-on-surface font-semibold">4</span> 桶</p>
+</div>
+<div class="mt-2 pt-2 border-t border-surface-variant flex justify-between items-end">
+<span class="font-label-caps text-label-caps text-outline">均价</span>
+<span class="font-data-tabular text-data-tabular font-bold text-on-surface">¥12.5</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl soft-shadow p-md border border-surface-variant hover:border-secondary transition-colors group cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 bg-secondary/10 px-2 py-1 rounded-bl-lg">
+<span class="font-label-caps text-label-caps text-secondary">常用</span>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-surface-tint">
+<span class="material-symbols-outlined text-[28px]">local_cafe</span>
+</div>
+<div>
+<h3 class="font-body-base text-body-base font-semibold text-on-surface truncate">illy 咖啡豆</h3>
+<p class="font-data-tabular text-data-tabular text-on-surface-variant mt-1">库存: <span class="text-on-surface font-semibold">2</span> 罐</p>
+</div>
+<div class="mt-2 pt-2 border-t border-surface-variant flex justify-between items-end">
+<span class="font-label-caps text-label-caps text-outline">均价</span>
+<span class="font-data-tabular text-data-tabular font-bold text-on-surface">¥68.0</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: 提醒商品 -->
+<section>
+<div class="flex items-center justify-between mb-md">
+<h2 class="font-headline-md text-headline-md text-on-background flex items-center gap-2">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">notification_important</span>
+                    提醒商品
+                </h2>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<!-- Urgent Card 1 (Red/Error) -->
+<div class="bg-surface-container-lowest rounded-xl soft-shadow p-md border border-error/30 hover:border-error transition-colors relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-error"></div>
+<div class="flex flex-col gap-sm">
+<div class="flex justify-between items-start">
+<div class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+<span class="bg-error-container text-on-error-container px-2 py-1 rounded-full font-label-caps text-label-caps">库存告急</span>
+</div>
+<div>
+<h3 class="font-body-base text-body-base font-semibold text-on-surface truncate">抽纸 3层120抽</h3>
+<div class="flex items-center gap-1 mt-1 text-error">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+<span class="font-data-tabular text-data-tabular font-bold">仅剩 1 提</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Urgent Card 2 (Amber/Warning) -->
+<div class="bg-surface-container-lowest rounded-xl soft-shadow p-md border border-tertiary-fixed-dim/50 hover:border-tertiary-fixed-dim transition-colors relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary-fixed-dim"></div>
+<div class="flex flex-col gap-sm">
+<div class="flex justify-between items-start">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined">event_busy</span>
+</div>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed px-2 py-1 rounded-full font-label-caps text-label-caps">即将过期</span>
+</div>
+<div>
+<h3 class="font-body-base text-body-base font-semibold text-on-surface truncate">全脂牛奶 1L</h3>
+<div class="flex items-center gap-1 mt-1 text-tertiary-container">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span class="font-data-tabular text-data-tabular font-bold">还有 3 天</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: 其他物品 (Collapsible) -->
+<section class="bg-surface-container-lowest rounded-xl soft-shadow border border-surface-variant overflow-hidden">
+<!-- Header (Toggle) -->
+<div class="p-md flex items-center justify-between bg-surface-container-low cursor-pointer hover:bg-surface-container transition-colors">
+<h2 class="font-headline-md text-headline-md text-on-background flex items-center gap-2">
+<span class="material-symbols-outlined text-outline">folder</span>
+                    其他物品
+                </h2>
+<span class="material-symbols-outlined text-outline transition-transform duration-200 rotate-180">expand_more</span>
+</div>
+<!-- Content (Collapsed State visualized as partially hidden or structurally represented, showing it open for design purposes) -->
+<div class="p-md space-y-lg border-t border-surface-variant hidden">
+<!-- Group: 消耗品 -->
+<div>
+<h3 class="font-body-base text-body-base font-semibold text-on-surface-variant mb-sm flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+                        消耗品 (Consumables)
+                    </h3>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-surface p-sm rounded-lg border border-surface-variant">
+<h4 class="font-data-tabular text-data-tabular font-medium text-on-surface truncate">洗手液补充装</h4>
+<div class="mt-2 space-y-1">
+<div class="flex justify-between font-label-caps text-label-caps">
+<span class="text-outline">最近购入</span>
+<span class="text-on-surface">¥19.9</span>
+</div>
+<div class="flex justify-between font-label-caps text-label-caps">
+<span class="text-outline">库存/过期</span>
+<span class="text-on-surface">2 / 24年12月</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Group: 常驻品 -->
+<div>
+<h3 class="font-body-base text-body-base font-semibold text-on-surface-variant mb-sm flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+                        常驻品 (Durables)
+                    </h3>
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-surface p-sm rounded-lg border border-surface-variant">
+<h4 class="font-data-tabular text-data-tabular font-medium text-on-surface truncate">电动牙刷头</h4>
+<div class="mt-2 space-y-1">
+<div class="flex justify-between font-label-caps text-label-caps">
+<span class="text-outline">购入价</span>
+<span class="text-on-surface">¥120.0</span>
+</div>
+<div class="flex justify-between font-label-caps text-label-caps">
+<span class="text-outline">日均/日期</span>
+<span class="text-on-surface">¥1.3 / 23年9月</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- visual indicator that it's collapsed -->
+<div class="p-md text-center text-outline font-label-caps text-label-caps">
+                点击展开内容
+            </div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg fixed bottom-0 w-full rounded-t-2xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 pb-safe md:hidden">
+<!-- Active Tab: 首页 -->
+<a class="flex flex-col items-center justify-center text-teal-600 dark:text-teal-400 scale-110 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) hover:text-indigo-500 dark:hover:text-indigo-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider mt-1">首页</span>
+</a>
+<!-- Inactive Tabs -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) hover:text-indigo-500 dark:hover:text-indigo-300" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider mt-1">价格</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) hover:text-indigo-500 dark:hover:text-indigo-300" href="#">
+<span class="material-symbols-outlined">inventory</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider mt-1">库存</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) hover:text-indigo-500 dark:hover:text-indigo-300" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider mt-1">笔记</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) hover:text-indigo-500 dark:hover:text-indigo-300" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider mt-1">设置</span>
+</a>
+</nav>
+</body></html>

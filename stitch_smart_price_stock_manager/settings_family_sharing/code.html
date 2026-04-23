@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartTrack - 设置</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f5f3f6",
+                        "tertiary": "#312300",
+                        "on-surface-variant": "#45464e",
+                        "secondary": "#006a6a",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#76d6d5",
+                        "primary-container": "#2e3a59",
+                        "on-secondary-container": "#006e6e",
+                        "on-secondary-fixed": "#002020",
+                        "on-primary-container": "#98a4c9",
+                        "surface-tint": "#525e7f",
+                        "on-primary-fixed-variant": "#3a4666",
+                        "tertiary-container": "#4a380c",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#dae2ff",
+                        "tertiary-fixed-dim": "#dfc38b",
+                        "on-surface": "#1b1b1e",
+                        "on-secondary": "#ffffff",
+                        "background": "#fbf8fc",
+                        "inverse-on-surface": "#f2f0f3",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fbf8fc",
+                        "surface": "#fbf8fc",
+                        "on-tertiary-container": "#bca26c",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#eae7ea",
+                        "on-background": "#1b1b1e",
+                        "outline-variant": "#c6c6ce",
+                        "inverse-primary": "#bac6ec",
+                        "surface-dim": "#dbd9dc",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#303033",
+                        "primary-fixed-dim": "#bac6ec",
+                        "outline": "#75777e",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#261a00",
+                        "primary": "#182442",
+                        "secondary-container": "#90efef",
+                        "surface-container": "#f0edf0",
+                        "surface-container-highest": "#e4e2e5",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#574417",
+                        "secondary-fixed": "#93f2f2",
+                        "on-primary-fixed": "#0d1a38",
+                        "tertiary-fixed": "#fddfa4",
+                        "surface-variant": "#e4e2e5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "margin-tablet": "24px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "data-tabular": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-price": ["Inter"],
+                        "body-base": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "data-tabular": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-price": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom toggle switch styling */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #006a6a;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #006a6a;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-base min-h-screen pb-24 selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- TopAppBar -->
+<header class="bg-slate-50/80 backdrop-blur-md docked full-width top-0 sticky z-50 flex items-center justify-between px-4 h-16 w-full max-w-7xl mx-auto border-b border-slate-200 shadow-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-indigo-700">inventory_2</span>
+<span class="font-['Inter'] tracking-tight text-lg font-bold text-indigo-900">SmartTrack</span>
+</div>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 transition-colors active:opacity-70 duration-200">
+<span class="material-symbols-outlined text-indigo-700">search</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-3xl mx-auto p-4 md:p-6 lg:p-8 space-y-8">
+<!-- User Profile Section -->
+<section class="bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.04)] p-6 flex items-center gap-6 border border-surface-container-low transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
+<div class="relative">
+<img alt="User avatar" class="w-20 h-20 rounded-full object-cover shadow-sm border-2 border-surface-container-lowest" data-alt="Professional headshot of a man with short hair wearing a dark blue shirt, well-lit studio background, confident subtle smile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtvdegc7yfUB88PVh9BB6pvvzDGAnKimfWjIruAfDvS52hrJToS2JrvKbrN65sLTDMsG5N0n9J8nYR1roUgEOEMQA-ZohGVqTzjFYoQjSGQ69w-CL8gIAnWd-5Qd1Gu2utw3t05341CqLoSfVHKeQmmrOw5Mr18Ly-kZNfRhKnwOI2egRHjDrOpItMGeZNbfW2rzAbxooEdoR-erYkjk0snRNxPHbebUzby_CgkNAvPi_yaqJyRDSvC4PjAz1J-APjJ1xLiSsHonM"/>
+<button class="absolute bottom-0 right-0 bg-primary text-on-primary w-6 h-6 rounded-full flex items-center justify-center shadow-md hover:bg-primary-container hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-[14px]">edit</span>
+</button>
+</div>
+<div class="flex-1">
+<h2 class="font-headline-md text-headline-md text-on-surface">Alex Mercer</h2>
+<p class="font-body-base text-body-base text-on-surface-variant mt-1">alex.mercer@smarttrack.io</p>
+<div class="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary-container text-on-secondary-container rounded-full">
+<span class="material-symbols-outlined text-[14px] icon-fill">verified</span>
+<span class="font-label-caps text-label-caps">PRO PLAN</span>
+</div>
+</div>
+</section>
+<!-- Family Sharing -->
+<section class="flex flex-col gap-3">
+<h3 class="font-label-caps text-label-caps text-primary uppercase ml-2 tracking-wider opacity-80">Family Sharing</h3>
+<p class="text-sm text-on-surface-variant ml-2 -mt-2">Share your inventory and price alerts with family members.</p>
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.04)] overflow-hidden border border-surface-container-low">
+<div class="flex items-center justify-between p-4 border-b border-surface-container-high">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined icon-fill">person</span>
+</div>
+<div class="flex flex-col">
+<span class="font-data-tabular text-data-tabular text-on-surface">Sarah</span>
+<span class="text-xs text-on-surface-variant">Admin</span>
+</div>
+</div>
+<span class="text-xs font-medium text-secondary bg-secondary-container/50 px-2.5 py-1 rounded-md">Active</span>
+</div>
+<div class="flex items-center justify-between p-4 border-b border-surface-container-high">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-outline">
+<span class="material-symbols-outlined">mail</span>
+</div>
+<div class="flex flex-col">
+<span class="font-data-tabular text-data-tabular text-on-surface">Family Member</span>
+<span class="text-xs text-outline">Pending</span>
+</div>
+</div>
+<button class="text-xs font-medium text-outline hover:text-on-surface transition-colors">Resend</button>
+</div>
+<button class="w-full flex items-center justify-center p-4 hover:bg-surface-container-low transition-colors active:bg-surface-container active:scale-[0.99] group text-primary">
+<span class="material-symbols-outlined mr-2">person_add</span>
+<span class="font-data-tabular text-data-tabular font-medium">Invite Family Member</span>
+</button>
+</div>
+</section>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Data Management -->
+<section class="flex flex-col gap-3">
+<h3 class="font-label-caps text-label-caps text-primary uppercase ml-2 tracking-wider opacity-80">Data Management</h3>
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.04)] overflow-hidden border border-surface-container-low">
+<button class="w-full flex items-center p-4 hover:bg-surface-container-low transition-colors active:bg-surface-container active:scale-[0.99] group border-b border-surface-container-high">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined">upload_file</span>
+</div>
+<span class="flex-1 text-left ml-4 font-data-tabular text-data-tabular text-on-surface">Import Data (JSON)</span>
+<span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+</button>
+<button class="w-full flex items-center p-4 hover:bg-surface-container-low transition-colors active:bg-surface-container active:scale-[0.99] group">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined">download</span>
+</div>
+<span class="flex-1 text-left ml-4 font-data-tabular text-data-tabular text-on-surface">Export Data (JSON)</span>
+<span class="material-symbols-outlined text-outline-variant">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Notifications -->
+<section class="flex flex-col gap-3">
+<h3 class="font-label-caps text-label-caps text-primary uppercase ml-2 tracking-wider opacity-80">Notifications</h3>
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.04)] overflow-hidden border border-surface-container-low">
+<!-- Toggle Row 1 -->
+<div class="flex items-center justify-between p-4 border-b border-surface-container-high">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-tertiary-container/10 flex items-center justify-center text-tertiary-container">
+<span class="material-symbols-outlined icon-fill">notifications_active</span>
+</div>
+<span class="font-data-tabular text-data-tabular text-on-surface">Price Alerts</span>
+</div>
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out border-surface-variant z-10 top-0 left-0 checked:translate-x-6 checked:border-secondary" id="toggle-price" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-pointer transition-colors duration-200 ease-in-out" for="toggle-price"></label>
+</div>
+</div>
+<!-- Toggle Row 2 -->
+<div class="flex items-center justify-between p-4 border-b border-surface-container-high">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-secondary-container/30 flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined icon-fill">inventory</span>
+</div>
+<span class="font-data-tabular text-data-tabular text-on-surface">Stock Reminders</span>
+</div>
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out border-surface-variant z-10 top-0 left-0 checked:translate-x-6 checked:border-secondary" id="toggle-stock" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-pointer transition-colors duration-200 ease-in-out" for="toggle-stock"></label>
+</div>
+</div>
+<!-- Toggle Row 3 -->
+<div class="flex items-center justify-between p-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-error-container/40 flex items-center justify-center text-error">
+<span class="material-symbols-outlined icon-fill">event_busy</span>
+</div>
+<span class="font-data-tabular text-data-tabular text-on-surface">Expiry Reminders</span>
+</div>
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out border-surface-variant z-10 top-0 left-0 checked:translate-x-6 checked:border-secondary" id="toggle-expiry" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-variant cursor-pointer transition-colors duration-200 ease-in-out" for="toggle-expiry"></label>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Integration Settings -->
+<section class="flex flex-col gap-3">
+<h3 class="font-label-caps text-label-caps text-primary uppercase ml-2 tracking-wider opacity-80">Integration Settings</h3>
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.04)] p-5 border border-surface-container-low">
+<div class="flex items-center gap-3 mb-6">
+<img alt="Obsidian Logo" class="w-8 h-8" data-alt="Purple hexagonal crystal logo representing Obsidian application icon isolated on white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8-AHe4qwEOyXIZwQY_PRo5sdMCA9VgkdwnD7ckd3iWeaUu0irnfB5MP-ZlTGhfI5CfsTxIM5ViN2A0hRfcF8CPNOZvUEdwVppS_Y3LHVdnU-K_bEFzHAlRtGaCyscAoqRhGk6_A0gNOFOUI0sn8d43nittNngYsk7ddZGEgGD_7XYBBAmHs8D6cGAqB7OIEP-rqhauQWOJMOgbhRAlkDp_q3M9_GqLZv3hz-38-dV9IzHzlbHKRDOwoKW2c68etG53Vw_yfsmui4"/>
+<h4 class="font-data-tabular text-data-tabular text-on-surface font-semibold">Obsidian Sync Configuration</h4>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col gap-1.5">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="server-url">Server URL</label>
+<input class="w-full bg-surface text-on-surface font-body-base text-body-base border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-shadow placeholder:text-outline/50" id="server-url" placeholder="https://your-obsidian-server.com/api" type="url"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="auth-token">Auth Token</label>
+<div class="relative">
+<input class="w-full bg-surface text-on-surface font-body-base text-body-base border border-outline-variant rounded-lg pl-4 pr-12 py-3 focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-shadow placeholder:text-outline/50" id="auth-token" placeholder="Enter your secure sync token" type="password" value="••••••••••••••••"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+<p class="font-label-caps text-label-caps text-outline mt-1 font-normal lowercase first-letter:uppercase">Keep this token secure to protect your sync data.</p>
+</div>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="bg-secondary text-on-secondary px-6 py-2.5 rounded-lg font-data-tabular text-data-tabular shadow-sm hover:bg-secondary-fixed-dim hover:text-on-secondary-fixed transition-colors active:scale-95 duration-150">
+                        Test Connection
+                    </button>
+</div>
+</div>
+</section>
+<!-- App Info -->
+<section class="flex flex-col items-center justify-center py-8 gap-2">
+<div class="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-primary text-[28px]">inventory_2</span>
+</div>
+<p class="font-label-caps text-label-caps text-outline-variant">SmartTrack Version 2.4.1 (Build 842)</p>
+<div class="flex items-center gap-4 mt-2 font-label-caps text-label-caps text-secondary cursor-pointer">
+<span class="hover:underline">Privacy Policy</span>
+<span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+<span class="hover:underline">Terms of Service</span>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-white/90 backdrop-blur-lg fixed bottom-0 w-full rounded-t-2xl border-t border-slate-100 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 pb-safe">
+<!-- Tab 1: 首页 (Inactive) -->
+<button class="flex flex-col items-center justify-center text-slate-400 hover:text-indigo-500 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) w-16 gap-1">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider">首页</span>
+</button>
+<!-- Tab 2: 价格 (Inactive) -->
+<button class="flex flex-col items-center justify-center text-slate-400 hover:text-indigo-500 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) w-16 gap-1">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider">价格</span>
+</button>
+<!-- Tab 3: 库存 (Inactive) -->
+<button class="flex flex-col items-center justify-center text-slate-400 hover:text-indigo-500 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) w-16 gap-1">
+<span class="material-symbols-outlined">inventory</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider">库存</span>
+</button>
+<!-- Tab 4: 笔记 (Inactive) -->
+<button class="flex flex-col items-center justify-center text-slate-400 hover:text-indigo-500 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) w-16 gap-1">
+<span class="material-symbols-outlined">description</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider">笔记</span>
+</button>
+<!-- Tab 5: 设置 (ACTIVE) -->
+<button class="flex flex-col items-center justify-center text-teal-600 scale-110 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) w-16 gap-1">
+<span class="material-symbols-outlined icon-fill">settings</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider">设置</span>
+</button>
+</nav>
+</body></html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartTrack - 价格</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f5f3f6",
+                        "tertiary": "#312300",
+                        "on-surface-variant": "#45464e",
+                        "secondary": "#006a6a",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#76d6d5",
+                        "primary-container": "#2e3a59",
+                        "on-secondary-container": "#006e6e",
+                        "on-secondary-fixed": "#002020",
+                        "on-primary-container": "#98a4c9",
+                        "surface-tint": "#525e7f",
+                        "on-primary-fixed-variant": "#3a4666",
+                        "tertiary-container": "#4a380c",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#dae2ff",
+                        "tertiary-fixed-dim": "#dfc38b",
+                        "on-surface": "#1b1b1e",
+                        "on-secondary": "#ffffff",
+                        "background": "#fbf8fc",
+                        "inverse-on-surface": "#f2f0f3",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fbf8fc",
+                        "surface": "#fbf8fc",
+                        "on-tertiary-container": "#bca26c",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#eae7ea",
+                        "on-background": "#1b1b1e",
+                        "outline-variant": "#c6c6ce",
+                        "inverse-primary": "#bac6ec",
+                        "surface-dim": "#dbd9dc",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#303033",
+                        "primary-fixed-dim": "#bac6ec",
+                        "outline": "#75777e",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#261a00",
+                        "primary": "#182442",
+                        "secondary-container": "#90efef",
+                        "surface-container": "#f0edf0",
+                        "surface-container-highest": "#e4e2e5",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#574417",
+                        "secondary-fixed": "#93f2f2",
+                        "on-primary-fixed": "#0d1a38",
+                        "tertiary-fixed": "#fddfa4",
+                        "surface-variant": "#e4e2e5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "margin-tablet": "24px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "data-tabular": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-price": ["Inter"],
+                        "body-base": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "data-tabular": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-price": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for horizontal lists */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24 font-body-base antialiased">
+<!-- TopAppBar -->
+<header class="bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md text-indigo-700 dark:text-indigo-400 font-['Inter'] tracking-tight top-0 sticky z-50 border-b border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none flex items-center justify-between px-4 h-16 w-full max-w-7xl mx-auto hidden md:flex">
+<div class="flex items-center gap-2 text-lg font-bold text-indigo-900 dark:text-indigo-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:opacity-70 transition-all duration-200 p-2 rounded-lg cursor-pointer">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>SmartTrack</span>
+</div>
+<div class="flex items-center gap-6">
+<nav class="flex items-center gap-6 text-slate-500 dark:text-slate-400">
+<span class="hover:text-indigo-500 dark:hover:text-indigo-300 cursor-pointer font-data-tabular text-data-tabular">首页</span>
+<span class="text-indigo-700 dark:text-indigo-400 font-data-tabular text-data-tabular">价格</span>
+<span class="hover:text-indigo-500 dark:hover:text-indigo-300 cursor-pointer font-data-tabular text-data-tabular">库存</span>
+<span class="hover:text-indigo-500 dark:hover:text-indigo-300 cursor-pointer font-data-tabular text-data-tabular">笔记</span>
+<span class="hover:text-indigo-500 dark:hover:text-indigo-300 cursor-pointer font-data-tabular text-data-tabular">设置</span>
+</nav>
+<button class="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:opacity-70 transition-all duration-200 p-2 rounded-full text-indigo-700 dark:text-indigo-400">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</header>
+<!-- Mobile Top Header (Fallback for structural flow on mobile) -->
+<header class="md:hidden flex items-center justify-between px-4 h-16 w-full sticky top-0 z-40 bg-surface-container-lowest/90 backdrop-blur-md shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+<h1 class="font-headline-md text-headline-md text-primary tracking-tight">SmartTrack</h1>
+<button class="text-on-surface-variant p-2">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<main class="max-w-7xl mx-auto px-margin-mobile md:px-margin-tablet pt-4 md:pt-8 flex flex-col gap-6">
+<!-- Search Bar -->
+<section class="relative w-full">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">search</span>
+</div>
+<input class="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border-outline-variant text-on-surface font-body-base text-body-base rounded-xl focus:border-secondary focus:ring-1 focus:ring-secondary transition-all shadow-[0_2px_8px_rgba(0,0,0,0.02)] outline-none" placeholder="Search products, SKUs, or categories..." type="text"/>
+<div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+</section>
+<!-- Price History Section (Bento Grid) -->
+<section class="bg-surface-container-lowest rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] p-4 md:p-6 flex flex-col gap-6">
+<header class="flex flex-wrap items-start justify-between gap-4 border-b border-surface-container pb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center overflow-hidden shrink-0">
+<img alt="Premium dark roasted coffee beans scattered on a rustic wooden table with warm natural lighting" class="w-full h-full object-cover" data-alt="Premium dark roasted coffee beans scattered on a rustic wooden table with warm natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAieLsNgUiBjvqXLajAGedCJsUgDQ_jEVCXLUCdnkX-MyPshUP09ed9Grz-w0hZq6CUs_T9VYx3bvSDr6XzjzG4tAs1GZM0z5lgIk07LW_Q_4Gw1NpNzueLyWsiDJVyqadwJ3Aiz1q3UrlSziiHNC9ROATCZdxVjUjKNPWaIM1JdzkRVDwPKz2IAWxER5BibBOfCkeBJXTEYdHks946tftGHBPvtBM4VoYGskac66M18MnlfXoN6u8Ipo7LnFFl-qnePPrYJPbvK9E"/>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Premium Arabica Beans</h2>
+<p class="font-data-tabular text-data-tabular text-on-surface-variant mt-1">SKU: CB-892-ORG</p>
+</div>
+</div>
+<div class="flex bg-surface-container-low rounded-lg p-1">
+<button class="px-4 py-1.5 rounded-md font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-container transition-colors">1W</button>
+<button class="px-4 py-1.5 rounded-md font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-container transition-colors">1M</button>
+<button class="px-4 py-1.5 rounded-md font-label-caps text-label-caps bg-surface-container-lowest text-primary shadow-sm">1Y</button>
+<button class="px-4 py-1.5 rounded-md font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-container transition-colors">ALL</button>
+</div>
+</header>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="flex flex-col gap-1 p-3 rounded-xl bg-surface-container-low">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Current Price</span>
+<span class="font-display-price text-display-price text-primary">$24.50</span>
+</div>
+<div class="flex flex-col gap-1 p-3 rounded-xl bg-surface-container-low">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Highest (1Y)</span>
+<span class="font-display-price text-display-price text-on-surface">$28.90</span>
+</div>
+<div class="flex flex-col gap-1 p-3 rounded-xl bg-surface-container-low">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Lowest (1Y)</span>
+<span class="font-display-price text-display-price text-on-surface">$21.00</span>
+</div>
+<div class="flex flex-col gap-1 p-3 rounded-xl bg-secondary-container/30 border border-secondary/20">
+<span class="font-label-caps text-label-caps text-secondary uppercase">Volatility</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary icon-fill text-xl">trending_down</span>
+<span class="font-display-price text-display-price text-secondary">-15.2%</span>
+</div>
+</div>
+</div>
+<!-- Chart Area (Mock) -->
+<div class="w-full h-48 md:h-64 mt-2 relative rounded-lg overflow-hidden border border-surface-container flex flex-col justify-end">
+<!-- Y-Axis labels -->
+<div class="absolute left-2 top-2 bottom-6 flex flex-col justify-between font-label-caps text-label-caps text-outline z-10">
+<span>$30</span>
+<span>$25</span>
+<span>$20</span>
+</div>
+<!-- Mock Area Chart -->
+<div class="w-full h-full relative" style="background: linear-gradient(180deg, rgba(0,106,106,0.08) 0%, rgba(0,106,106,0) 100%); border-top: 2px solid #006a6a; clip-path: polygon(0 40%, 10% 30%, 20% 50%, 30% 20%, 40% 60%, 50% 10%, 60% 40%, 70% 30%, 80% 70%, 90% 20%, 100% 50%, 100% 100%, 0 100%);"></div>
+<!-- Chart Tooltip Mock -->
+<div class="absolute top-[20%] left-[30%] -translate-x-1/2 -translate-y-[120%] bg-inverse-surface text-inverse-on-surface px-3 py-2 rounded-lg shadow-lg flex flex-col items-center pointer-events-none z-20">
+<span class="font-label-caps text-label-caps opacity-80">Mar 15</span>
+<span class="font-data-tabular text-data-tabular font-bold">$28.90</span>
+<div class="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-inverse-surface rotate-45"></div>
+</div>
+<div class="absolute top-[20%] left-[30%] w-2 h-2 rounded-full bg-surface-container-lowest border-2 border-secondary -translate-x-1/2 -translate-y-1/2 z-20 shadow-[0_0_0_4px_rgba(0,106,106,0.2)]"></div>
+<!-- X-Axis labels -->
+<div class="absolute bottom-0 left-0 w-full flex justify-between px-8 py-2 font-label-caps text-label-caps text-outline border-t border-surface-container bg-surface-container-lowest/50 backdrop-blur-sm">
+<span>Jan</span>
+<span>Apr</span>
+<span>Jul</span>
+<span>Oct</span>
+<span>Dec</span>
+</div>
+</div>
+</section>
+<!-- Expenditure Analytics & Channel Comparison (Asymmetric Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Expenditure Analytics -->
+<section class="lg:col-span-2 bg-surface-container-lowest rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] p-4 md:p-6 flex flex-col gap-4">
+<header class="flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-on-surface">Category Expenditure</h3>
+<button class="text-secondary hover:text-on-secondary-container transition-colors p-1">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</header>
+<div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+<button class="px-4 py-1.5 rounded-full border border-secondary bg-secondary/10 text-secondary font-data-tabular text-data-tabular whitespace-nowrap">All Categories</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low font-data-tabular text-data-tabular whitespace-nowrap">Food &amp; Bev</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low font-data-tabular text-data-tabular whitespace-nowrap">Household</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low font-data-tabular text-data-tabular whitespace-nowrap">Office Supplies</button>
+</div>
+<!-- Multi-series Chart Mock -->
+<div class="w-full h-48 mt-2 relative border-b border-l border-surface-container">
+<!-- Grid Lines -->
+<div class="absolute top-1/4 w-full border-t border-dashed border-surface-variant"></div>
+<div class="absolute top-2/4 w-full border-t border-dashed border-surface-variant"></div>
+<div class="absolute top-3/4 w-full border-t border-dashed border-surface-variant"></div>
+<!-- Line 1 (Food) -->
+<svg class="absolute inset-0 h-full w-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,80 Q20,70 40,50 T80,30 T100,10" fill="none" stroke="#006a6a" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+<!-- Line 2 (Household) -->
+<svg class="absolute inset-0 h-full w-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0,90 Q25,85 50,75 T75,80 T100,60" fill="none" stroke="#182442" stroke-dasharray="4,4" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+<div class="flex justify-center gap-6 mt-2">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-secondary"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Food &amp; Bev</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full border-2 border-primary border-dashed"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Household</span>
+</div>
+</div>
+</section>
+<!-- Channel Comparison -->
+<section class="bg-surface-container-lowest rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] p-4 flex flex-col gap-4">
+<header class="flex justify-between items-center border-b border-surface-container pb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface">Store Prices</h3>
+</header>
+<div class="flex flex-col gap-3">
+<!-- Store Card 1 -->
+<div class="flex items-center justify-between p-3 rounded-xl border border-secondary bg-secondary/5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">storefront</span>
+</div>
+<div class="flex flex-col">
+<span class="font-data-tabular text-data-tabular text-on-surface font-semibold">MegaMart</span>
+<span class="font-label-caps text-label-caps text-secondary">In Stock</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-display-price text-[20px] leading-tight text-primary font-bold">$24.50</span>
+<span class="font-label-caps text-label-caps text-outline line-through">$26.00</span>
+</div>
+</div>
+<!-- Store Card 2 -->
+<div class="flex items-center justify-between p-3 rounded-xl border border-surface-container hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">local_shipping</span>
+</div>
+<div class="flex flex-col">
+<span class="font-data-tabular text-data-tabular text-on-surface font-semibold">FastSupply Co.</span>
+<span class="font-label-caps text-label-caps text-outline">Low Stock</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-display-price text-[20px] leading-tight text-on-surface font-bold">$25.10</span>
+</div>
+</div>
+<!-- Store Card 3 -->
+<div class="flex items-center justify-between p-3 rounded-xl border border-surface-container hover:bg-surface-container-low transition-colors cursor-pointer opacity-70">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">shopping_bag</span>
+</div>
+<div class="flex flex-col">
+<span class="font-data-tabular text-data-tabular text-on-surface font-semibold">Local Grocer</span>
+<span class="font-label-caps text-label-caps text-error">Out of Stock</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-display-price text-[20px] leading-tight text-on-surface-variant font-bold">$23.90</span>
+</div>
+</div>
+</div>
+<button class="mt-auto pt-4 font-label-caps text-label-caps text-primary hover:text-secondary transition-colors uppercase tracking-wider text-center">View All Channels</button>
+</section>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg fixed bottom-0 w-full rounded-t-2xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 pb-safe md:hidden">
+<div class="hover:text-indigo-500 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 cursor-pointer">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider mt-1">首页</span>
+</div>
+<div class="hover:text-indigo-500 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) flex flex-col items-center justify-center text-teal-600 dark:text-teal-400 scale-110 cursor-pointer">
+<span class="material-symbols-outlined icon-fill">trending_up</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider mt-1">价格</span>
+</div>
+<div class="hover:text-indigo-500 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 cursor-pointer">
+<span class="material-symbols-outlined">inventory</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider mt-1">库存</span>
+</div>
+<div class="hover:text-indigo-500 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 cursor-pointer">
+<span class="material-symbols-outlined">description</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider mt-1">笔记</span>
+</div>
+<div class="hover:text-indigo-500 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150 cubic-bezier(0.4,0,0.2,1) flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold font-['Inter'] uppercase tracking-wider mt-1">设置</span>
+</div>
+</nav>
+</body></html>

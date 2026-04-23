@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartTrack Mobile Widgets</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#4a380c",
+                        "tertiary": "#312300",
+                        "surface-variant": "#e4e2e5",
+                        "inverse-surface": "#303033",
+                        "background": "#fbf8fc",
+                        "on-surface": "#1b1b1e",
+                        "primary": "#182442",
+                        "inverse-on-surface": "#f2f0f3",
+                        "primary-fixed": "#dae2ff",
+                        "tertiary-fixed": "#fddfa4",
+                        "primary-container": "#2e3a59",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e4e2e5",
+                        "surface-container": "#f0edf0",
+                        "surface": "#fbf8fc",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#002020",
+                        "on-primary-fixed-variant": "#3a4666",
+                        "surface-container-high": "#eae7ea",
+                        "primary-fixed-dim": "#bac6ec",
+                        "on-tertiary-container": "#bca26c",
+                        "surface-tint": "#525e7f",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed": "#261a00",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#dbd9dc",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-error": "#ffffff",
+                        "on-secondary-container": "#006e6e",
+                        "tertiary-fixed-dim": "#dfc38b",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c6c6ce",
+                        "on-primary-fixed": "#0d1a38",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f5f3f6",
+                        "outline": "#75777e",
+                        "on-surface-variant": "#45464e",
+                        "secondary-fixed-dim": "#76d6d5",
+                        "on-tertiary-fixed-variant": "#574417",
+                        "on-error-container": "#93000a",
+                        "on-background": "#1b1b1e",
+                        "surface-bright": "#fbf8fc",
+                        "secondary-fixed": "#93f2f2",
+                        "secondary": "#006a6a",
+                        "secondary-container": "#90efef",
+                        "inverse-primary": "#bac6ec",
+                        "on-primary-container": "#98a4c9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "md": "16px",
+                        "xl": "32px",
+                        "gutter": "16px",
+                        "margin-mobile": "16px",
+                        "lg": "24px",
+                        "unit": "4px",
+                        "sm": "8px",
+                        "margin-tablet": "24px"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Inter"],
+                        "data-tabular": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-price": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "data-tabular": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-price": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .shadow-soft {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen font-body-base pb-24 pt-16">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between px-4 h-16 w-full text-indigo-900 dark:text-indigo-300 font-inter antialiased">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="inventory_2" data-weight="fill" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="text-lg font-bold tracking-tight text-indigo-900 dark:text-indigo-100">SmartTrack</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="professional headshot of a person looking forward against a neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB90xWpytD7R_CdSrYQQeg5Fk_A-s5lJOAJ9xBndElwJcQjkpHmqdd-zCXUF6A9KFpGsg7K-GzTCWFzAXpzUQtyjysA3mPzz-05iC2GDwPxsrzsf9x6hqXhbs6-Wq0ak3tS36SvJm-Pd4B_EPEeTmec91mD4Qd__Efa5ZlnBo2pK1deihXy8DyHHFO5nG0kbsuAAKgwci9ltUS2sYXWozBbc8Yt1lFhyekygvRcFs97usqdU0Y5dgE_beNiFrphXfb1-lRWTqedn84"/>
+</div>
+</header>
+<main class="px-margin-mobile flex flex-col gap-lg max-w-md mx-auto">
+<div class="pt-lg">
+<h1 class="font-headline-md text-headline-md text-on-background mb-sm">Dashboard Widgets</h1>
+<p class="font-body-base text-body-base text-on-surface-variant">At-a-glance inventory metrics.</p>
+</div>
+<!-- 1. Restock Widget (Small) -->
+<section>
+<h2 class="font-label-caps text-label-caps text-outline mb-sm">ACTION REQUIRED</h2>
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-soft flex items-center justify-between border border-surface-container">
+<div class="flex items-center gap-md">
+<div class="w-16 h-16 rounded-lg bg-surface-container-low flex items-center justify-center overflow-hidden shrink-0">
+<img alt="3D Box" class="w-12 h-12 object-contain drop-shadow-md" data-alt="clean minimalist 3d render of an open cardboard box on a light grey background with soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBw3vx6-DVy9Kzb-J9r8bp0-osN8-WlfpWRP6fIJGZTAEjfqTMU-1fMfQ692steaa9XJxcjw3RH5VtH4iTUVu60rNV2n38GymcqZYN49lkjyE9Tv1GLjX02QWZKk4eUrf0tEcic4-Advk3KrNpJpXvZqw12_OqgamGppX18PIa-7i59PalI21j-vypbByYwk9N4UfQhBJaljbar3pmjcrqIBxU4KncADj-FekhhqYEs3_M6kUjgqFuAr_58PFD8jpDtWlkHgAWoR7Q"/>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">ITEMS TO RESTOCK</p>
+<p class="font-display-price text-display-price text-primary">12</p>
+</div>
+</div>
+<button class="bg-primary text-on-primary font-label-caps text-label-caps px-4 py-2 rounded-full hover:bg-primary-container transition-colors active:scale-95 duration-150">
+                    VIEW ALL
+                </button>
+</div>
+</section>
+<!-- 2. Consumption Widget (Medium) -->
+<section>
+<h2 class="font-label-caps text-label-caps text-outline mb-sm">CRITICAL INVENTORY</h2>
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-soft border border-surface-container flex flex-col gap-md">
+<div class="flex justify-between items-center pb-sm border-b border-surface-container">
+<span class="font-data-tabular text-data-tabular text-on-background">Low Stock &amp; Expiry</span>
+<span class="material-symbols-outlined text-outline text-sm" data-icon="trending_down">trending_down</span>
+</div>
+<!-- Item 1 -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center">
+<span class="font-data-tabular text-data-tabular text-on-surface">Printer Ink (Black)</span>
+<span class="font-label-caps text-label-caps text-error">2 LEFT</span>
+</div>
+<div class="w-full bg-surface-variant h-2 rounded-full overflow-hidden">
+<div class="bg-error h-full rounded-full" style="width: 10%;"></div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center">
+<span class="font-data-tabular text-data-tabular text-on-surface">Copy Paper (A4)</span>
+<span class="font-label-caps text-label-caps text-on-tertiary-container">15% REMAINING</span>
+</div>
+<div class="w-full bg-surface-variant h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full rounded-full" style="width: 15%;"></div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center">
+<span class="font-data-tabular text-data-tabular text-on-surface">Coffee Beans</span>
+<span class="font-label-caps text-label-caps text-secondary">EXPIRES IN 3 DAYS</span>
+</div>
+<div class="w-full bg-surface-variant h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 85%;"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-lg border-t border-slate-200 dark:border-slate-800 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg flex justify-around items-center h-20 pb-safe px-2">
+<button class="flex flex-col items-center justify-center text-teal-600 dark:text-teal-400 pt-1 hover:text-indigo-900 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="dashboard" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-inter text-[10px] font-bold uppercase tracking-wider mt-1">Dashboard</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 pt-1 hover:text-indigo-900 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span class="font-inter text-[10px] font-bold uppercase tracking-wider mt-1">Inventory</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 pt-1 hover:text-indigo-900 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+<span class="font-inter text-[10px] font-bold uppercase tracking-wider mt-1">Scan</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 pt-1 hover:text-indigo-900 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-inter text-[10px] font-bold uppercase tracking-wider mt-1">Settings</span>
+</button>
+</nav>
+</body></html>
