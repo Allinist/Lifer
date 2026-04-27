@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/app/providers/database_providers.dart';
 import 'package:lifer/core/utils/formatters.dart';
+import 'package:lifer/data/local/db/app_database.dart';
 import 'package:lifer/features/product/application/product_detail_models.dart';
 
 final productDetailProvider =

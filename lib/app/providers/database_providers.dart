@@ -1,5 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/data/local/db/app_database.dart';
+import 'package:lifer/data/local/db/daos/catalog_dao.dart';
+import 'package:lifer/data/local/db/daos/inventory_dao.dart';
+import 'package:lifer/data/local/db/daos/pricing_dao.dart';
+import 'package:lifer/data/local/db/daos/reminder_dao.dart';
+import 'package:lifer/data/local/db/daos/settings_dao.dart';
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   final database = AppDatabase();

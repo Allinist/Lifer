@@ -179,6 +179,7 @@ class _ReminderProductsSection extends StatelessWidget {
         children: reminderEvents.isEmpty
             ? const [
                 _ReminderTile(
+                  productId: 'demo-egg',
                   title: '鸡蛋',
                   subtitle: '库存只剩 2 枚，建议今晚补货',
                   urgencyLabel: '库存低',
@@ -186,6 +187,7 @@ class _ReminderProductsSection extends StatelessWidget {
                 ),
                 SizedBox(height: 12),
                 _ReminderTile(
+                  productId: 'demo-vegetable',
                   title: '菠菜',
                   subtitle: '距离到期还有 1 天',
                   urgencyLabel: '快到期',
@@ -193,6 +195,7 @@ class _ReminderProductsSection extends StatelessWidget {
                 ),
                 SizedBox(height: 12),
                 _ReminderTile(
+                  productId: 'demo-detergent',
                   title: '洗衣液',
                   subtitle: '价格低于目标价 8%',
                   urgencyLabel: '价格回落',

@@ -12,7 +12,15 @@ import 'daos/reminder_dao.dart';
 import 'daos/settings_dao.dart';
 import 'tables/app_tables.dart';
 
+export 'daos/catalog_dao.dart';
+export 'daos/inventory_dao.dart';
+export 'daos/pricing_dao.dart';
+export 'daos/reminder_dao.dart';
+export 'daos/settings_dao.dart';
+
 part 'app_database.g.dart';
+
+typedef StockBatch = StockBatche;
 
 @DriftDatabase(
   tables: [
