@@ -22,6 +22,18 @@ class PriceStatsViewData {
   final int? highestAmountMinor;
 }
 
+class SpendingBreakdownViewData {
+  const SpendingBreakdownViewData({
+    required this.label,
+    required this.amountMinor,
+    required this.ratio,
+  });
+
+  final String label;
+  final int amountMinor;
+  final double ratio;
+}
+
 enum PricingRange {
   all,
   last30Days,

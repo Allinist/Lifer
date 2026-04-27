@@ -30,13 +30,19 @@ final homePinnedCardProvider = FutureProvider<List<HomeProductCardData>>((ref) a
           ..limit(1))
         .getSingleOrNull();
 
-    final latestBatch = await ((db.select(db.stockBatches))
-          ..where((tbl) => tbl.productId.equals(product.id) & tbl.isArchived.equals(false))
-          ..orderBy([
-            (tbl) => OrderingTerm(expression: tbl.expiryDate),
-          ])
-          ..limit(1))
-        .getSingleOrNull();
+    final batches = await ((db.select(db.stockBatches))
+          ..where((tbl) => tbl.productId.equals(product.id) & tbl.isArchived.equals(false)))
+        .get();
+
+    final remainingQuantity = batches.fold<double>(0, (sum, batch) => sum + batch.remainingQuantity);
+    int? nearestExpiry;
+    for (final batch in batches) {
+      final expiry = batch.expiryDate;
+      if (expiry == null) continue;
+      if (nearestExpiry == null || expiry < nearestExpiry) {
+        nearestExpiry = expiry;
+      }
+    }
 
     items.add(
       HomeProductCardData(
@@ -44,11 +50,11 @@ final homePinnedCardProvider = FutureProvider<List<HomeProductCardData>>((ref) a
         name: product.name,
         productType: product.productType,
         topLine: product.productType == 'consumable'
-            ? '最近一次 ${Formatters.currencyFromMinor(latestPrice?.amountMinor)}'
-            : '购买价格 ${Formatters.currencyFromMinor(latestPrice?.amountMinor)}',
+            ? '最近价格 ${Formatters.currencyFromMinor(latestPrice?.amountMinor)}'
+            : '购入价格 ${Formatters.currencyFromMinor(latestPrice?.amountMinor)}',
         bottomLine: product.productType == 'consumable'
-            ? '库存 ${Formatters.quantity(latestBatch?.remainingQuantity)} · 到期 ${Formatters.fullDateFromMillis(latestBatch?.expiryDate)}'
-            : '购买时间 ${Formatters.fullDateFromMillis(latestPrice?.purchasedAt)}',
+            ? '库存 ${Formatters.quantity(remainingQuantity)} · 最近到期 ${Formatters.fullDateFromMillis(nearestExpiry)}'
+            : '最近购入 ${Formatters.fullDateFromMillis(latestPrice?.purchasedAt)}',
       ),
     );
   }
@@ -67,11 +73,49 @@ final homeReminderCardProvider = FutureProvider<List<ReminderCardData>>((ref) as
       ReminderCardData(
         productId: event.productId,
         title: product?.name ?? event.eventType,
-        subtitle: '紧急度 ${event.urgencyScore} · 到期/触发 ${Formatters.fullDateFromMillis(event.dueAt)}',
+        subtitle: '紧急度 ${event.urgencyScore} · 触发时间 ${Formatters.fullDateFromMillis(event.dueAt)}',
         urgencyScore: event.urgencyScore,
       ),
     );
   }
 
   return items;
+});
+
+final homeOtherProductGroupsProvider = FutureProvider<List<OtherProductGroupData>>((ref) async {
+  final db = ref.watch(appDatabaseProvider);
+  final products = await ((db.select(db.products))
+        ..where((tbl) => tbl.isArchived.equals(false) & tbl.isPinnedHome.equals(false))
+        ..orderBy([
+          (tbl) => OrderingTerm(expression: tbl.productType),
+          (tbl) => OrderingTerm(expression: tbl.name),
+        ]))
+      .get();
+
+  if (products.isEmpty) {
+    return const <OtherProductGroupData>[];
+  }
+
+  final categoryIds = products.map((product) => product.categoryId).toSet();
+  final categoryMap = <String, String>{};
+  for (final categoryId in categoryIds) {
+    final category =
+        await ((db.select(db.categories))..where((tbl) => tbl.id.equals(categoryId))).getSingleOrNull();
+    if (category != null) {
+      categoryMap[categoryId] = category.name;
+    }
+  }
+
+  final counts = <String, int>{};
+  for (final product in products) {
+    final typeLabel = product.productType == 'consumable' ? '消耗品' : '常驻品';
+    final categoryLabel = categoryMap[product.categoryId] ?? '未分类';
+    final key = '$typeLabel · $categoryLabel';
+    counts.update(key, (value) => value + 1, ifAbsent: () => 1);
+  }
+
+  return counts.entries
+      .map((entry) => OtherProductGroupData(title: entry.key, itemCount: entry.value))
+      .toList()
+    ..sort((a, b) => b.itemCount.compareTo(a.itemCount));
 });

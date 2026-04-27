@@ -19,6 +19,7 @@ class ReminderActions {
   final Uuid _uuid;
 
   Future<void> saveRule({
+    String? productId,
     required String productName,
     required String ruleType,
     required String thresholdType,
@@ -29,17 +30,19 @@ class ReminderActions {
     required bool enabled,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final productId = await _helper.ensureProduct(
-      productName: productName,
-      categoryName: '未分类',
-      unitSymbol: '件',
-      productType: 'consumable',
-    );
+    final resolvedProductId = productId != null && productId.isNotEmpty
+        ? productId
+        : await _helper.ensureProduct(
+            productName: productName,
+            categoryName: '未分类',
+            unitSymbol: '件',
+            productType: 'consumable',
+          );
 
     await _db.reminderDao.upsertReminderRule(
       ReminderRulesCompanion.insert(
         id: _uuid.v4(),
-        productId: productId,
+        productId: resolvedProductId,
         ruleType: ruleType,
         thresholdType: thresholdType,
         thresholdValue: Value(double.tryParse(thresholdValue.trim())),

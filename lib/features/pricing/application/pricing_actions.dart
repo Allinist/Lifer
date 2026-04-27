@@ -20,20 +20,20 @@ class PricingActions {
     required String recordId,
     required String recordDate,
     required String price,
+    required String quantity,
+    required String? unitSymbol,
     required String channelName,
-    required String quantityLabel,
   }) async {
     final amountMinor = _parseMoney(price) ?? 0;
     final purchasedAt = _parseDate(recordDate) ?? DateTime.now().millisecondsSinceEpoch;
-    final parsedQuantity = _parseQuantityAndUnit(quantityLabel);
     final channelId = await _ensureChannel(channelName);
-    final unitId = parsedQuantity.$2 == null ? null : await _ensureUnit(parsedQuantity.$2!);
+    final unitId = unitSymbol == null || unitSymbol.trim().isEmpty ? null : await _ensureUnit(unitSymbol);
 
     await _pricingDao.updatePriceRecord(
       recordId: recordId,
       amountMinor: amountMinor,
       purchasedAt: purchasedAt,
-      quantity: parsedQuantity.$1,
+      quantity: _parseQuantity(quantity),
       channelId: channelId,
       unitId: unitId,
     );
@@ -137,12 +137,9 @@ class PricingActions {
     return DateTime.tryParse(text)?.millisecondsSinceEpoch;
   }
 
-  (double?, String?) _parseQuantityAndUnit(String input) {
+  double? _parseQuantity(String input) {
     final text = input.trim();
-    if (text.isEmpty || text == '--') return (null, null);
-    final parts = text.split(RegExp(r'\s+'));
-    final quantity = double.tryParse(parts.first);
-    final unit = parts.length > 1 ? parts.sublist(1).join(' ') : null;
-    return (quantity, unit);
+    if (text.isEmpty || text == '--') return null;
+    return double.tryParse(text);
   }
 }

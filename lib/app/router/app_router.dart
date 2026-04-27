@@ -86,7 +86,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/reminder-rule/create',
-        builder: (context, state) => const ReminderRuleFormPage(),
+        builder: (context, state) => ReminderRuleFormPage(
+          initialProductId: state.uri.queryParameters['productId'],
+        ),
       ),
       GoRoute(
         path: '/pricing/record/edit',

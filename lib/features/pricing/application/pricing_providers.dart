@@ -73,7 +73,7 @@ final filteredPriceRecordsProvider = Provider<List<PriceRecord>>((ref) {
 final selectedProductPricePointsProvider = Provider<List<PricePointViewData>>((ref) {
   final records = ref.watch(filteredPriceRecordsProvider);
   return records
-      .take(6)
+      .take(12)
       .toList()
       .reversed
       .map(
@@ -105,8 +105,7 @@ final selectedProductPriceStatsProvider = Provider<PriceStatsViewData>((ref) {
   );
 });
 
-final recentPriceRecordItemsProvider =
-    FutureProvider<List<RecentPriceRecordViewData>>((ref) async {
+final recentPriceRecordItemsProvider = FutureProvider<List<RecentPriceRecordViewData>>((ref) async {
   final db = ref.watch(appDatabaseProvider);
   final records = ref.watch(filteredPriceRecordsProvider);
   if (records.isEmpty) return const <RecentPriceRecordViewData>[];
@@ -126,8 +125,7 @@ final recentPriceRecordItemsProvider =
 
   final unitMap = <String, String>{};
   for (final unitId in unitIds) {
-    final unit = await ((db.select(db.units))..where((tbl) => tbl.id.equals(unitId)))
-        .getSingleOrNull();
+    final unit = await ((db.select(db.units))..where((tbl) => tbl.id.equals(unitId))).getSingleOrNull();
     if (unit != null) {
       unitMap[unitId] = unit.symbol;
     }
@@ -153,37 +151,10 @@ final channelPriceSummaryProvider = FutureProvider<List<ChannelPriceViewData>>((
   final productId = ref.watch(selectedPricingProductIdProvider);
   if (productId == null || productId.isEmpty) return const <ChannelPriceViewData>[];
 
-  final range = ref.watch(selectedPricingRangeProvider);
-  final customRange = ref.watch(customPricingDateRangeProvider);
-  final records =
-      ref.watch(selectedProductPriceRecordsProvider).valueOrNull ?? const <PriceRecord>[];
+  final records = ref.watch(filteredPriceRecordsProvider);
+  if (records.isEmpty) return const <ChannelPriceViewData>[];
 
-  final scopedRecords = records.where((record) {
-    if (range == PricingRange.all) return true;
-    if (range == PricingRange.custom) {
-      final startAt = customRange.start?.millisecondsSinceEpoch;
-      final endAt = customRange.end?.millisecondsSinceEpoch;
-      final afterStart = startAt == null || record.purchasedAt >= startAt;
-      final beforeEnd = endAt == null || record.purchasedAt <= endAt;
-      return afterStart && beforeEnd;
-    }
-
-    final threshold = switch (range) {
-      PricingRange.last30Days => DateTime.now()
-          .subtract(const Duration(days: 30))
-          .millisecondsSinceEpoch,
-      PricingRange.last90Days => DateTime.now()
-          .subtract(const Duration(days: 90))
-          .millisecondsSinceEpoch,
-      PricingRange.all => 0,
-      PricingRange.custom => 0,
-    };
-    return record.purchasedAt >= threshold;
-  }).toList();
-
-  if (scopedRecords.isEmpty) return const <ChannelPriceViewData>[];
-
-  final channelIds = scopedRecords.map((record) => record.channelId).whereType<String>().toSet();
+  final channelIds = records.map((record) => record.channelId).whereType<String>().toSet();
   final channelMap = <String, String>{};
   for (final channelId in channelIds) {
     final channel = await ((db.select(db.purchaseChannels))
@@ -195,7 +166,7 @@ final channelPriceSummaryProvider = FutureProvider<List<ChannelPriceViewData>>((
   }
 
   final grouped = <String, List<PriceRecord>>{};
-  for (final record in scopedRecords) {
+  for (final record in records) {
     final key = record.channelId ?? 'unassigned';
     grouped.putIfAbsent(key, () => <PriceRecord>[]).add(record);
   }
@@ -204,15 +175,41 @@ final channelPriceSummaryProvider = FutureProvider<List<ChannelPriceViewData>>((
     final amounts = entry.value.map((record) => record.amountMinor).toList();
     return ChannelPriceViewData(
       channelKey: entry.key,
-      channelName: entry.key == 'unassigned'
-          ? '未设置渠道'
-          : (channelMap[entry.key] ?? entry.key),
+      channelName: entry.key == 'unassigned' ? '未设置渠道' : (channelMap[entry.key] ?? entry.key),
       recordCount: entry.value.length,
-      lowestAmountMinor: amounts.isEmpty ? null : amounts.reduce((a, b) => a < b ? a : b),
+      lowestAmountMinor: amounts.reduce((a, b) => a < b ? a : b),
       latestAmountMinor: entry.value.first.amountMinor,
     );
   }).toList()
     ..sort((a, b) => a.channelName.compareTo(b.channelName));
+});
+
+final spendingBreakdownProvider = Provider<List<SpendingBreakdownViewData>>((ref) {
+  final records = ref.watch(filteredPriceRecordsProvider);
+  if (records.isEmpty) return const <SpendingBreakdownViewData>[];
+
+  final grouped = <String, int>{};
+  for (final record in records) {
+    final date = DateTime.fromMillisecondsSinceEpoch(record.purchasedAt);
+    final label = '${date.year}-${date.month.toString().padLeft(2, '0')}';
+    grouped.update(label, (value) => value + record.amountMinor, ifAbsent: () => record.amountMinor);
+  }
+
+  final total = grouped.values.fold<int>(0, (sum, amount) => sum + amount);
+  final sorted = grouped.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+  final recent = sorted.length > 6 ? sorted.sublist(sorted.length - 6) : sorted;
+
+  return recent
+      .map(
+        (entry) => SpendingBreakdownViewData(
+          label: entry.key,
+          amountMinor: entry.value,
+          ratio: total == 0 ? 0 : entry.value / total,
+        ),
+      )
+      .toList()
+      .reversed
+      .toList();
 });
 
 class SelectableProducts {

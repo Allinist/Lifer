@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,10 +21,11 @@ class PricingPage extends ConsumerWidget {
     final selectedChannelKey = ref.watch(selectedPricingChannelKeyProvider);
     final pricePoints = ref.watch(selectedProductPricePointsProvider);
     final priceStats = ref.watch(selectedProductPriceStatsProvider);
-    final recentRecords = ref.watch(recentPriceRecordItemsProvider).valueOrNull ??
-        const <RecentPriceRecordViewData>[];
+    final recentRecords =
+        ref.watch(recentPriceRecordItemsProvider).valueOrNull ?? const <RecentPriceRecordViewData>[];
     final channelSummary =
         ref.watch(channelPriceSummaryProvider).valueOrNull ?? const <ChannelPriceViewData>[];
+    final spendingBreakdown = ref.watch(spendingBreakdownProvider);
 
     return AppPageScaffold(
       title: '价格',
@@ -65,6 +67,7 @@ class PricingPage extends ConsumerWidget {
         SizedBox(
           width: double.infinity,
           child: SegmentedButton<PricingRange>(
+            showSelectedIcon: false,
             segments: PricingRange.values
                 .map((range) => ButtonSegment(value: range, label: Text(range.label)))
                 .toList(),
@@ -83,14 +86,7 @@ class PricingPage extends ConsumerWidget {
         SectionCard(
           title: '价格曲线',
           subtitle: selectedProduct == null ? '先选择商品' : '${selectedProduct.name} · ${selectedRange.label}',
-          child: _ChartPlaceholder(
-            title: selectedProduct?.name ?? '价格曲线',
-            points: pricePoints.isEmpty
-                ? const ['04/01 10.8', '04/08 11.2', '04/15 12.8', '04/22 11.6']
-                : pricePoints
-                    .map((point) => '${point.label} ${(point.amountMinor / 100).toStringAsFixed(2)}')
-                    .toList(),
-          ),
+          child: _PriceLineChart(points: pricePoints),
         ),
         const SizedBox(height: AppSpacing.section),
         SectionCard(
@@ -117,10 +113,10 @@ class PricingPage extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.section),
-        const SectionCard(
-          title: '支出分析',
-          subtitle: '全部、分类集合、跨分类商品集合',
-          child: _SpendingBreakdown(),
+        SectionCard(
+          title: '支出趋势',
+          subtitle: '按月份汇总当前筛选范围内的价格记录',
+          child: _SpendingBreakdown(items: spendingBreakdown),
         ),
         const SizedBox(height: AppSpacing.section),
         SectionCard(
@@ -256,7 +252,7 @@ class _RecentPriceRecordList extends StatelessWidget {
     if (items.isEmpty) {
       return const ListTile(
         title: Text('暂无价格记录'),
-        subtitle: Text('录入补货或价格后，这里会显示最近变化。'),
+        subtitle: Text('录入补货或价格后，这里会显示最近变动。'),
       );
     }
 
@@ -318,9 +314,7 @@ class _ChannelSummaryList extends StatelessWidget {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
-                    color: selected
-                        ? AppColors.secondary.withOpacity(0.08)
-                        : Colors.transparent,
+                    color: selected ? AppColors.secondary.withOpacity(0.08) : Colors.transparent,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: ListTile(
@@ -330,9 +324,7 @@ class _ChannelSummaryList extends StatelessWidget {
                           selected ? null : item.channelKey;
                     },
                     title: Text(item.channelName),
-                    subtitle: Text(
-                      '记录 ${item.recordCount} 次 · 最低 ${_formatMinor(item.lowestAmountMinor)}',
-                    ),
+                    subtitle: Text('记录 ${item.recordCount} 次 · 最低 ${_formatMinor(item.lowestAmountMinor)}'),
                     trailing: Text(
                       _formatMinor(item.latestAmountMinor),
                       style: Theme.of(context).textTheme.titleMedium,
@@ -376,70 +368,85 @@ class _RangeHint extends StatelessWidget {
   }
 }
 
-class _ChartPlaceholder extends StatelessWidget {
-  const _ChartPlaceholder({
-    required this.title,
+class _PriceLineChart extends StatelessWidget {
+  const _PriceLineChart({
     required this.points,
   });
 
-  final String title;
-  final List<String> points;
+  final List<PricePointViewData> points;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 220,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0x1A006A6A), Color(0x05006A6A)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+    if (points.isEmpty) {
+      return const SizedBox(
+        height: 220,
+        child: Center(
+          child: Text('暂无可绘制的价格数据'),
         ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 20),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: points
-                  .map(
-                    (point) => Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.bottomCenter,
-                                child: Container(
-                                  height: 48 + (point.hashCode % 68).toDouble(),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.secondary.withOpacity(0.75),
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              point.split(' ').first,
-                              style: Theme.of(context).textTheme.labelMedium,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
+      );
+    }
+
+    final amounts = points.map((point) => point.amountMinor / 100).toList();
+    final minY = amounts.reduce((a, b) => a < b ? a : b);
+    final maxY = amounts.reduce((a, b) => a > b ? a : b);
+    final hasSingleValue = minY == maxY;
+
+    return SizedBox(
+      height: 220,
+      child: LineChart(
+        LineChartData(
+          minY: hasSingleValue ? minY - 1 : minY * 0.96,
+          maxY: hasSingleValue ? maxY + 1 : maxY * 1.04,
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            horizontalInterval: hasSingleValue ? 1 : null,
+          ),
+          borderData: FlBorderData(show: false),
+          titlesData: FlTitlesData(
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 40,
+                getTitlesWidget: (value, meta) => Text(value.toStringAsFixed(0)),
+              ),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                interval: 1,
+                getTitlesWidget: (value, meta) {
+                  final index = value.toInt();
+                  if (index < 0 || index >= points.length) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(points[index].label),
+                  );
+                },
+              ),
             ),
           ),
-        ],
+          lineBarsData: [
+            LineChartBarData(
+              isCurved: true,
+              color: AppColors.secondary,
+              barWidth: 3,
+              dotData: const FlDotData(show: true),
+              belowBarData: BarAreaData(
+                show: true,
+                color: AppColors.secondary.withOpacity(0.12),
+              ),
+              spots: [
+                for (var i = 0; i < points.length; i++)
+                  FlSpot(i.toDouble(), points[i].amountMinor / 100),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -470,9 +477,7 @@ class _StatChip extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.primary,
-                ),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.primary),
           ),
         ],
       ),
@@ -481,32 +486,40 @@ class _StatChip extends StatelessWidget {
 }
 
 class _SpendingBreakdown extends StatelessWidget {
-  const _SpendingBreakdown();
+  const _SpendingBreakdown({
+    required this.items,
+  });
+
+  final List<SpendingBreakdownViewData> items;
 
   @override
   Widget build(BuildContext context) {
     final style = Theme.of(context).textTheme.bodyLarge;
 
+    if (items.isEmpty) {
+      return const ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text('暂无支出趋势'),
+        subtitle: Text('选择商品并录入价格记录后，这里会按月份自动汇总。'),
+      );
+    }
+
     return Column(
       children: [
-        for (final row in const [
-          ('厨房食材', '328.50', 0.72),
-          ('洗护清洁', '146.20', 0.41),
-          ('宠物用品', '219.90', 0.58),
-        ])
+        for (final row in items)
           Padding(
             padding: const EdgeInsets.only(bottom: 14),
             child: Column(
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(row.$1, style: style)),
-                    Text(row.$2, style: style),
+                    Expanded(child: Text(row.label, style: style)),
+                    Text(_formatMinor(row.amountMinor), style: style),
                   ],
                 ),
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
-                  value: row.$3,
+                  value: row.ratio.clamp(0, 1),
                   minHeight: 10,
                   borderRadius: BorderRadius.circular(999),
                   backgroundColor: AppColors.surfaceMuted,

@@ -27,3 +27,13 @@ class ReminderCardData {
   final String subtitle;
   final int urgencyScore;
 }
+
+class OtherProductGroupData {
+  const OtherProductGroupData({
+    required this.title,
+    required this.itemCount,
+  });
+
+  final String title;
+  final int itemCount;
+}

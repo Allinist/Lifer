@@ -15,11 +15,32 @@ final inventoryProductsProvider = StreamProvider<List<Product>>((ref) {
       .watch();
 });
 
+final inventorySearchQueryProvider = StateProvider<String>((ref) => '');
+final inventorySegmentProvider =
+    StateProvider<InventorySegment>((ref) => InventorySegment.consumable);
 final selectedInventoryProductIdProvider = StateProvider<String?>((ref) => null);
+
+final filteredInventoryProductsProvider = Provider<List<Product>>((ref) {
+  final products = ref.watch(inventoryProductsProvider).valueOrNull ?? const <Product>[];
+  final query = ref.watch(inventorySearchQueryProvider).trim().toLowerCase();
+  final segment = ref.watch(inventorySegmentProvider);
+
+  return products.where((product) {
+    final matchesSegment = segment == InventorySegment.consumable
+        ? product.productType == 'consumable'
+        : product.productType == 'durable';
+    if (!matchesSegment) return false;
+
+    if (query.isEmpty) return true;
+    final haystack = '${product.name} ${product.alias ?? ''} ${product.brand ?? ''}'.toLowerCase();
+    return haystack.contains(query);
+  }).toList();
+});
 
 final selectedInventoryBatchesProvider = StreamProvider<List<StockBatch>>((ref) {
   final productId = ref.watch(selectedInventoryProductIdProvider);
-  if (productId == null || productId.isEmpty) {
+  final segment = ref.watch(inventorySegmentProvider);
+  if (segment != InventorySegment.consumable || productId == null || productId.isEmpty) {
     return const Stream.empty();
   }
   return ref.watch(inventoryDaoProvider).watchActiveBatchesForProduct(productId);
@@ -27,7 +48,8 @@ final selectedInventoryBatchesProvider = StreamProvider<List<StockBatch>>((ref) 
 
 final selectedInventoryUsageProvider = StreamProvider<List<DurableUsagePeriod>>((ref) {
   final productId = ref.watch(selectedInventoryProductIdProvider);
-  if (productId == null || productId.isEmpty) {
+  final segment = ref.watch(inventorySegmentProvider);
+  if (segment != InventorySegment.durable || productId == null || productId.isEmpty) {
     return const Stream.empty();
   }
   return ref.watch(inventoryDaoProvider).watchDurableUsagePeriods(productId);
@@ -38,6 +60,7 @@ final selectedInventoryBatchCardsProvider = Provider<List<InventoryBatchViewData
   return batches
       .map(
         (batch) => InventoryBatchViewData(
+          productId: batch.productId,
           title: batch.batchLabel ?? '批次 ${batch.id.substring(0, 6)}',
           summary:
               '剩余 ${Formatters.quantity(batch.remainingQuantity)} / ${Formatters.quantity(batch.totalQuantity)} · 到期 ${Formatters.fullDateFromMillis(batch.expiryDate)}',
@@ -52,6 +75,7 @@ final selectedInventoryUsageCardsProvider = Provider<List<DurableUsageViewData>>
   return periods
       .map(
         (period) => DurableUsageViewData(
+          productId: period.productId,
           title: '使用周期',
           summary:
               '开始 ${Formatters.fullDateFromMillis(period.startAt)} · 结束 ${Formatters.fullDateFromMillis(period.endAt)}',

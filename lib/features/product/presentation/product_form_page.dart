@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/features/product/application/product_actions.dart';
+import 'package:lifer/features/shared/application/form_options_providers.dart';
 import 'package:lifer/shared/widgets/form_page_scaffold.dart';
 import 'package:lifer/shared/widgets/form_section.dart';
 
@@ -14,23 +15,25 @@ class ProductFormPage extends ConsumerStatefulWidget {
 class _ProductFormPageState extends ConsumerState<ProductFormPage> {
   final _nameController = TextEditingController();
   final _aliasController = TextEditingController();
-  final _categoryController = TextEditingController(text: '未分类');
+  final _customCategoryController = TextEditingController();
   final _brandController = TextEditingController();
-  final _unitController = TextEditingController(text: '件');
+  final _customUnitController = TextEditingController();
   final _targetPriceController = TextEditingController();
   final _shelfLifeController = TextEditingController();
   final _notesController = TextEditingController();
 
   String _productType = 'consumable';
   bool _isPinnedHome = true;
+  String? _selectedCategoryName;
+  String? _selectedUnitSymbol;
 
   @override
   void dispose() {
     _nameController.dispose();
     _aliasController.dispose();
-    _categoryController.dispose();
+    _customCategoryController.dispose();
     _brandController.dispose();
-    _unitController.dispose();
+    _customUnitController.dispose();
     _targetPriceController.dispose();
     _shelfLifeController.dispose();
     _notesController.dispose();
@@ -38,13 +41,21 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
   }
 
   Future<void> _save() async {
+    final categoryName = (_selectedCategoryName == '__custom__'
+            ? _customCategoryController.text
+            : _selectedCategoryName) ??
+        _customCategoryController.text;
+    final unitSymbol =
+        (_selectedUnitSymbol == '__custom__' ? _customUnitController.text : _selectedUnitSymbol) ??
+            _customUnitController.text;
+
     await ref.read(productActionsProvider).createProduct(
           name: _nameController.text,
           alias: _aliasController.text,
           productType: _productType,
-          categoryName: _categoryController.text,
+          categoryName: categoryName,
           brand: _brandController.text,
-          unitSymbol: _unitController.text,
+          unitSymbol: unitSymbol,
           targetPrice: _targetPriceController.text,
           shelfLifeDays: _shelfLifeController.text,
           isPinnedHome: _isPinnedHome,
@@ -58,6 +69,15 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final categories = ref.watch(rootCategoriesProvider).valueOrNull ?? const [];
+    final units = ref.watch(unitsProvider).valueOrNull ?? const [];
+    final categoryValue = categories.any((item) => item.name == _selectedCategoryName)
+        ? _selectedCategoryName
+        : (_selectedCategoryName == '__custom__' ? '__custom__' : null);
+    final unitValue = units.any((item) => item.symbol == _selectedUnitSymbol)
+        ? _selectedUnitSymbol
+        : (_selectedUnitSymbol == '__custom__' ? '__custom__' : null);
+
     return FormPageScaffold(
       title: '新增商品',
       primaryAction: _save,
@@ -83,11 +103,65 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
         FormSection(
           title: '归属与展示',
           children: [
-            TextField(controller: _categoryController, decoration: const InputDecoration(labelText: '所属分类')),
+            DropdownButtonFormField<String>(
+              value: categoryValue,
+              decoration: const InputDecoration(labelText: '所属分类'),
+              items: [
+                ...categories.map(
+                  (category) => DropdownMenuItem(
+                    value: category.name,
+                    child: Text(category.name),
+                  ),
+                ),
+                const DropdownMenuItem(
+                  value: '__custom__',
+                  child: Text('新建分类'),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedCategoryName = value;
+                });
+              },
+            ),
+            if (_selectedCategoryName == '__custom__') ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _customCategoryController,
+                decoration: const InputDecoration(labelText: '新分类名称'),
+              ),
+            ],
             const SizedBox(height: 12),
             TextField(controller: _brandController, decoration: const InputDecoration(labelText: '品牌')),
             const SizedBox(height: 12),
-            TextField(controller: _unitController, decoration: const InputDecoration(labelText: '默认单位')),
+            DropdownButtonFormField<String>(
+              value: unitValue,
+              decoration: const InputDecoration(labelText: '默认单位'),
+              items: [
+                ...units.map(
+                  (unit) => DropdownMenuItem(
+                    value: unit.symbol,
+                    child: Text('${unit.symbol} · ${unit.name}'),
+                  ),
+                ),
+                const DropdownMenuItem(
+                  value: '__custom__',
+                  child: Text('新建单位'),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedUnitSymbol = value;
+                });
+              },
+            ),
+            if (_selectedUnitSymbol == '__custom__') ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _customUnitController,
+                decoration: const InputDecoration(labelText: '新单位符号'),
+              ),
+            ],
           ],
         ),
         FormSection(

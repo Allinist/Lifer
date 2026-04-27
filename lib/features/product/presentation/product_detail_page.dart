@@ -82,7 +82,7 @@ class ProductDetailPage extends ConsumerWidget {
                     label: const Text('消耗'),
                   ),
                   FilledButton.icon(
-                    onPressed: () => context.push('/reminder-rule/create'),
+                    onPressed: () => context.push('/reminder-rule/create?productId=$productId'),
                     icon: const Icon(Icons.notifications_active_outlined),
                     label: const Text('提醒'),
                   ),

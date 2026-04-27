@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lifer/core/constants/app_spacing.dart';
 import 'package:lifer/features/settings/application/settings_providers.dart';
 import 'package:lifer/shared/widgets/app_page_scaffold.dart';
@@ -11,70 +12,101 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLogo = ref.watch(currentLogoAssetProvider);
+    final settings = ref.watch(appSettingsStreamProvider).valueOrNull;
     final settingsActions = ref.watch(settingsActionsProvider);
+
+    Future<void> runAndToast(Future<String> Function() action, String successPrefix) async {
+      try {
+        final path = await action();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$successPrefix\n$path')),
+          );
+        }
+      } catch (error) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.toString())),
+          );
+        }
+      }
+    }
 
     return AppPageScaffold(
       title: '设置',
       children: [
-        const SectionCard(
+        SectionCard(
           title: '数据管理',
           child: Column(
             children: [
               ListTile(
-                leading: Icon(Icons.upload_file_outlined),
-                title: Text('JSON 导入'),
+                leading: const Icon(Icons.upload_file_outlined),
+                title: const Text('JSON 导入'),
+                subtitle: const Text('从应用文档目录读取 lifer_import.json，没有时回退到 lifer_export_latest.json'),
+                onTap: () => runAndToast(settingsActions.importJson, '导入完成'),
               ),
               ListTile(
-                leading: Icon(Icons.download_outlined),
-                title: Text('JSON 导出'),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.section),
-        const SectionCard(
-          title: '通知与提醒',
-          child: Column(
-            children: [
-              SwitchListTile(
-                value: true,
-                onChanged: null,
-                title: Text('启用系统通知'),
-              ),
-              ListTile(
-                leading: Icon(Icons.notifications_active_outlined),
-                title: Text('提醒时段与频率'),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.section),
-        const SectionCard(
-          title: '语言、货币与 Obsidian',
-          child: Column(
-            children: [
-              ListTile(
-                leading: Icon(Icons.language_rounded),
-                title: Text('语言'),
-                subtitle: Text('简体中文'),
-              ),
-              ListTile(
-                leading: Icon(Icons.currency_yen_rounded),
-                title: Text('记账单位'),
-                subtitle: Text('CNY'),
-              ),
-              ListTile(
-                leading: Icon(Icons.menu_book_outlined),
-                title: Text('Obsidian Sync'),
-                subtitle: Text('配置 Vault 路径与 URI Scheme'),
+                leading: const Icon(Icons.download_outlined),
+                title: const Text('JSON 导出'),
+                subtitle: const Text('导出到应用文档目录，并额外生成一份 lifer_export_latest.json'),
+                onTap: () => runAndToast(settingsActions.exportJson, '导出完成'),
               ),
             ],
           ),
         ),
         const SizedBox(height: AppSpacing.section),
         SectionCard(
-          title: '应用 Logo',
-          subtitle: '默认使用 Lifer.png，可切换为 Logo.png',
+          title: '通知与提醒',
+          child: Column(
+            children: [
+              SwitchListTile(
+                value: settings?.notificationsEnabled ?? true,
+                onChanged: (value) {
+                  settingsActions.saveNotificationsEnabled(value);
+                },
+                title: const Text('启用系统通知'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.notifications_active_outlined),
+                title: const Text('提醒时段与频率'),
+                subtitle: const Text('进入提醒规则配置'),
+                onTap: () => context.push('/reminder-rule/create'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.section),
+        SectionCard(
+          title: '语言、货币与 Obsidian',
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.language_rounded),
+                title: const Text('语言'),
+                subtitle: Text(settings?.languageCode ?? 'zh-CN'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.currency_yen_rounded),
+                title: const Text('记账货币'),
+                subtitle: Text(settings?.currencyCode ?? 'CNY'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.menu_book_outlined),
+                title: const Text('Obsidian Vault'),
+                subtitle: Text(settings?.obsidianVaultPath ?? '未配置'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.link_rounded),
+                title: const Text('Obsidian URI Scheme'),
+                subtitle: Text(settings?.obsidianUriScheme ?? '未配置'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.section),
+        SectionCard(
+          title: 'Flutter 应用 Logo',
+          subtitle: '这里切换的是桌面启动图标，默认使用 Lifer.png，可切换为 Logo.png',
           child: Row(
             children: [
               Expanded(
