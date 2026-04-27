@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lifer/core/constants/app_spacing.dart';
+import 'package:lifer/core/utils/formatters.dart';
 import 'package:lifer/features/product/application/product_detail_providers.dart';
 import 'package:lifer/shared/widgets/section_card.dart';
 
@@ -16,6 +17,12 @@ class ProductDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(productDetailProvider(productId)).valueOrNull;
+    final prices = ref.watch(productRecentPricesProvider(productId)).valueOrNull ?? const [];
+    final batches = ref.watch(productBatchesProvider(productId)).valueOrNull ?? const [];
+    final rules = ref.watch(productReminderRulesProvider(productId)).valueOrNull ?? const [];
+    final consumptions =
+        ref.watch(productConsumptionRecordsProvider(productId)).valueOrNull ?? const [];
+    final noteLinks = ref.watch(productNoteLinksProvider(productId)).valueOrNull ?? const [];
 
     return Scaffold(
       appBar: AppBar(title: const Text('商品详情')),
@@ -81,6 +88,110 @@ class ProductDetailPage extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: AppSpacing.section),
+            SectionCard(
+              title: '最近价格记录',
+              child: prices.isEmpty
+                  ? const ListTile(
+                      title: Text('暂无价格记录'),
+                    )
+                  : Column(
+                      children: prices
+                          .map(
+                            (price) => ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(Formatters.fullDateFromMillis(price.purchasedAt)),
+                              subtitle: Text('币种 ${price.currencyCode}'),
+                              trailing: Text(Formatters.currencyFromMinor(price.amountMinor)),
+                            ),
+                          )
+                          .toList(),
+                    ),
+            ),
+            const SizedBox(height: AppSpacing.section),
+            SectionCard(
+              title: '库存批次',
+              child: batches.isEmpty
+                  ? const ListTile(
+                      title: Text('暂无库存批次'),
+                    )
+                  : Column(
+                      children: batches
+                          .map(
+                            (batch) => ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(batch.batchLabel ?? '批次 ${batch.id.substring(0, 6)}'),
+                              subtitle: Text(
+                                '剩余 ${Formatters.quantity(batch.remainingQuantity)} / ${Formatters.quantity(batch.totalQuantity)}',
+                              ),
+                              trailing: Text(Formatters.fullDateFromMillis(batch.expiryDate)),
+                            ),
+                          )
+                          .toList(),
+                    ),
+            ),
+            const SizedBox(height: AppSpacing.section),
+            SectionCard(
+              title: '提醒规则',
+              child: rules.isEmpty
+                  ? const ListTile(
+                      title: Text('暂无提醒规则'),
+                    )
+                  : Column(
+                      children: rules
+                          .map(
+                            (rule) => ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text('${rule.ruleType} / ${rule.thresholdType}'),
+                              subtitle: Text(
+                                '阈值 ${rule.thresholdValue ?? '--'} · 优先级 ${rule.priority}',
+                              ),
+                              trailing: Text(rule.isEnabled ? '启用' : '停用'),
+                            ),
+                          )
+                          .toList(),
+                    ),
+            ),
+            const SizedBox(height: AppSpacing.section),
+            SectionCard(
+              title: '最近消耗记录',
+              child: consumptions.isEmpty
+                  ? const ListTile(
+                      title: Text('暂无消耗记录'),
+                    )
+                  : Column(
+                      children: consumptions
+                          .map(
+                            (record) => ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(Formatters.fullDateFromMillis(record.occurredAt)),
+                              subtitle: Text('用途 ${record.usageType}'),
+                              trailing: Text(Formatters.quantity(record.quantity)),
+                            ),
+                          )
+                          .toList(),
+                    ),
+            ),
+            const SizedBox(height: AppSpacing.section),
+            SectionCard(
+              title: '笔记入口',
+              child: noteLinks.isEmpty
+                  ? const ListTile(
+                      title: Text('暂无关联笔记'),
+                    )
+                  : Column(
+                      children: noteLinks
+                          .map(
+                            (link) => ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(link.title),
+                              subtitle: Text(link.obsidianPath ?? link.uri ?? '--'),
+                              trailing: Text(link.linkType),
+                            ),
+                          )
+                          .toList(),
+                    ),
             ),
           ],
         ),

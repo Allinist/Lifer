@@ -53,3 +53,75 @@ final productDetailProvider =
     expiryLabel: Formatters.fullDateFromMillis(nearestExpiry),
   );
 });
+
+final productRecentPricesProvider =
+    FutureProvider.family<List<PriceRecord>, String>((ref, productId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return ((db.select(db.priceRecords))
+        ..where((tbl) => tbl.productId.equals(productId))
+        ..orderBy([
+          (tbl) => OrderingTerm(
+                expression: tbl.purchasedAt,
+                mode: OrderingMode.desc,
+              ),
+        ])
+        ..limit(5))
+      .get();
+});
+
+final productBatchesProvider =
+    FutureProvider.family<List<StockBatch>, String>((ref, productId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return ((db.select(db.stockBatches))
+        ..where((tbl) => tbl.productId.equals(productId) & tbl.isArchived.equals(false))
+        ..orderBy([
+          (tbl) => OrderingTerm(expression: tbl.expiryDate),
+        ])
+        ..limit(5))
+      .get();
+});
+
+final productReminderRulesProvider =
+    FutureProvider.family<List<ReminderRule>, String>((ref, productId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return ((db.select(db.reminderRules))
+        ..where((tbl) => tbl.productId.equals(productId))
+        ..orderBy([
+          (tbl) => OrderingTerm(
+                expression: tbl.priority,
+                mode: OrderingMode.desc,
+              ),
+        ])
+        ..limit(5))
+      .get();
+});
+
+final productConsumptionRecordsProvider =
+    FutureProvider.family<List<ConsumptionRecord>, String>((ref, productId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return ((db.select(db.consumptionRecords))
+        ..where((tbl) => tbl.productId.equals(productId))
+        ..orderBy([
+          (tbl) => OrderingTerm(
+                expression: tbl.occurredAt,
+                mode: OrderingMode.desc,
+              ),
+        ])
+        ..limit(5))
+      .get();
+});
+
+final productNoteLinksProvider =
+    FutureProvider.family<List<ProductNoteLink>, String>((ref, productId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return ((db.select(db.productNoteLinks))
+        ..where((tbl) => tbl.productId.equals(productId))
+        ..orderBy([
+          (tbl) => OrderingTerm(
+                expression: tbl.updatedAt,
+                mode: OrderingMode.desc,
+              ),
+        ])
+        ..limit(5))
+      .get();
+});

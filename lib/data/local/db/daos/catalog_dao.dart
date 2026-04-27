@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:lifer/data/local/db/app_database.dart';
+import 'package:lifer/data/local/db/tables/app_tables.dart';
 
 part 'catalog_dao.g.dart';
 

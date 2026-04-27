@@ -5,6 +5,8 @@ import 'package:lifer/features/inventory/presentation/consumption_form_page.dart
 import 'package:lifer/features/inventory/presentation/inventory_page.dart';
 import 'package:lifer/features/inventory/presentation/restock_form_page.dart';
 import 'package:lifer/features/notes/presentation/notes_page.dart';
+import 'package:lifer/features/pricing/presentation/channel_management_page.dart';
+import 'package:lifer/features/pricing/presentation/price_record_edit_page.dart';
 import 'package:lifer/features/pricing/presentation/pricing_page.dart';
 import 'package:lifer/features/product/presentation/product_detail_page.dart';
 import 'package:lifer/features/product/presentation/product_form_page.dart';
@@ -85,6 +87,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/reminder-rule/create',
         builder: (context, state) => const ReminderRuleFormPage(),
+      ),
+      GoRoute(
+        path: '/pricing/record/edit',
+        builder: (context, state) => PriceRecordEditPage(
+          recordId: state.uri.queryParameters['id'] ?? '',
+          recordDate: state.uri.queryParameters['date'] ?? '',
+          price: state.uri.queryParameters['price'] ?? '',
+          channel: state.uri.queryParameters['channel'] ?? '',
+          quantity: state.uri.queryParameters['quantity'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/pricing/channels',
+        builder: (context, state) => const ChannelManagementPage(),
       ),
     ],
   );

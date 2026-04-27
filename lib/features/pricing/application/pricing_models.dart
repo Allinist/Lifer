@@ -21,3 +21,71 @@ class PriceStatsViewData {
   final int? lowestAmountMinor;
   final int? highestAmountMinor;
 }
+
+enum PricingRange {
+  all,
+  last30Days,
+  last90Days,
+  custom;
+
+  String get label => switch (this) {
+        PricingRange.all => '全部',
+        PricingRange.last30Days => '近 30 天',
+        PricingRange.last90Days => '近 90 天',
+        PricingRange.custom => '自定义',
+      };
+}
+
+class RecentPriceRecordViewData {
+  const RecentPriceRecordViewData({
+    required this.recordId,
+    required this.dateLabel,
+    required this.priceLabel,
+    required this.quantityLabel,
+    required this.channelLabel,
+  });
+
+  final String recordId;
+  final String dateLabel;
+  final String priceLabel;
+  final String quantityLabel;
+  final String channelLabel;
+}
+
+class ChannelPriceViewData {
+  const ChannelPriceViewData({
+    required this.channelKey,
+    required this.channelName,
+    required this.recordCount,
+    required this.lowestAmountMinor,
+    required this.latestAmountMinor,
+  });
+
+  final String channelKey;
+  final String channelName;
+  final int recordCount;
+  final int? lowestAmountMinor;
+  final int? latestAmountMinor;
+}
+
+class PricingDateRange {
+  const PricingDateRange({
+    this.start,
+    this.end,
+  });
+
+  final DateTime? start;
+  final DateTime? end;
+
+  PricingDateRange copyWith({
+    DateTime? start,
+    DateTime? end,
+    bool clearStart = false,
+    bool clearEnd = false,
+  }) {
+    return PricingDateRange(
+      start: clearStart ? null : (start ?? this.start),
+      end: clearEnd ? null : (end ?? this.end),
+    );
+  }
+}

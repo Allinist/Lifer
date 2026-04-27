@@ -205,6 +205,7 @@ class _ReminderProductsSection extends StatelessWidget {
                   (event) => Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: _ReminderTile(
+                      productId: event.productId,
                       title: event.title,
                       subtitle: event.subtitle,
                       urgencyLabel: '提醒',
@@ -333,12 +334,14 @@ class _ProductCard extends StatelessWidget {
 
 class _ReminderTile extends StatelessWidget {
   const _ReminderTile({
+    required this.productId,
     required this.title,
     required this.subtitle,
     required this.urgencyLabel,
     required this.color,
   });
 
+  final String productId;
   final String title;
   final String subtitle;
   final String urgencyLabel;
@@ -346,38 +349,42 @@ class _ReminderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.outline, width: 0.6),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => context.push('/product/$productId'),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.outline, width: 0.6),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(Icons.notifications_active_outlined, color: color),
             ),
-            child: Icon(Icons.notifications_active_outlined, color: color),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 4),
-                Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-              ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          _Badge(label: urgencyLabel, color: color),
-        ],
+            const SizedBox(width: 12),
+            _Badge(label: urgencyLabel, color: color),
+          ],
+        ),
       ),
     );
   }
