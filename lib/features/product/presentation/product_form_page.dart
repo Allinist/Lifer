@@ -1,12 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lifer/app/providers/database_providers.dart';
+import 'package:lifer/data/local/db/app_database.dart';
 import 'package:lifer/features/product/application/product_actions.dart';
 import 'package:lifer/features/shared/application/form_options_providers.dart';
 import 'package:lifer/shared/widgets/form_page_scaffold.dart';
 import 'package:lifer/shared/widgets/form_section.dart';
 
+final productFormInitialDataProvider =
+    FutureProvider.family<_ProductFormInitialData?, String>((ref, productId) async {
+  final db = ref.watch(appDatabaseProvider);
+  final product = await ((db.select(db.products))..where((tbl) => tbl.id.equals(productId))).getSingleOrNull();
+  if (product == null) {
+    return null;
+  }
+
+  final category = await ((db.select(db.categories))..where((tbl) => tbl.id.equals(product.categoryId)))
+      .getSingleOrNull();
+  final unit = product.unitId == null
+      ? null
+      : await ((db.select(db.units))..where((tbl) => tbl.id.equals(product.unitId!))).getSingleOrNull();
+
+  return _ProductFormInitialData(
+    product: product,
+    categoryName: category?.name,
+    unitSymbol: unit?.symbol,
+  );
+});
+
+class _ProductFormInitialData {
+  const _ProductFormInitialData({
+    required this.product,
+    required this.categoryName,
+    required this.unitSymbol,
+  });
+
+  final Product product;
+  final String? categoryName;
+  final String? unitSymbol;
+}
+
 class ProductFormPage extends ConsumerStatefulWidget {
-  const ProductFormPage({super.key});
+  const ProductFormPage({
+    this.productId,
+    this.initialProductType,
+    super.key,
+  });
+
+  final String? productId;
+  final String? initialProductType;
+
+  bool get isEditing => productId != null && productId!.isNotEmpty;
 
   @override
   ConsumerState<ProductFormPage> createState() => _ProductFormPageState();
@@ -26,6 +71,16 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
   bool _isPinnedHome = true;
   String? _selectedCategoryName;
   String? _selectedUnitSymbol;
+  bool _didHydrate = false;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if ((widget.initialProductType ?? '').trim().isNotEmpty) {
+      _productType = widget.initialProductType!.trim();
+    }
+  }
 
   @override
   void dispose() {
@@ -40,37 +95,144 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
     super.dispose();
   }
 
+  void _hydrate({
+    required String? categoryName,
+    required String? unitSymbol,
+    required String name,
+    required String? alias,
+    required String productType,
+    required String? brand,
+    required int? targetPriceMinor,
+    required int? shelfLifeDays,
+    required bool isPinnedHome,
+    required String? notes,
+  }) {
+    if (_didHydrate) return;
+    _didHydrate = true;
+    _nameController.text = name;
+    _aliasController.text = alias ?? '';
+    _brandController.text = brand ?? '';
+    _targetPriceController.text =
+        targetPriceMinor == null ? '' : (targetPriceMinor / 100).toStringAsFixed(2);
+    _shelfLifeController.text = shelfLifeDays?.toString() ?? '';
+    _notesController.text = notes ?? '';
+    _productType = productType;
+    _isPinnedHome = isPinnedHome;
+    _selectedCategoryName = categoryName;
+    _selectedUnitSymbol = unitSymbol;
+  }
+
   Future<void> _save() async {
-    final categoryName = (_selectedCategoryName == '__custom__'
+    if (_isSaving) return;
+    final name = _nameController.text.trim();
+    final categoryName = ((_selectedCategoryName == '__custom__'
             ? _customCategoryController.text
             : _selectedCategoryName) ??
-        _customCategoryController.text;
-    final unitSymbol =
-        (_selectedUnitSymbol == '__custom__' ? _customUnitController.text : _selectedUnitSymbol) ??
-            _customUnitController.text;
+        _customCategoryController.text)
+        .trim();
+    final unitSymbol = (((_selectedUnitSymbol == '__custom__'
+                ? _customUnitController.text
+                : _selectedUnitSymbol) ??
+            _customUnitController.text))
+        .trim();
 
-    await ref.read(productActionsProvider).createProduct(
-          name: _nameController.text,
-          alias: _aliasController.text,
-          productType: _productType,
-          categoryName: categoryName,
-          brand: _brandController.text,
-          unitSymbol: unitSymbol,
-          targetPrice: _targetPriceController.text,
-          shelfLifeDays: _shelfLifeController.text,
-          isPinnedHome: _isPinnedHome,
-          notes: _notesController.text,
-        );
+    if (name.isEmpty) {
+      _showError('请填写商品名称');
+      return;
+    }
+    if (categoryName.isEmpty) {
+      _showError('请先选择或新建分类');
+      return;
+    }
+    if (unitSymbol.isEmpty) {
+      _showError('请先选择或新建单位');
+      return;
+    }
+
+    final isEditing = widget.isEditing;
+    setState(() => _isSaving = true);
+    try {
+      if (isEditing) {
+        await ref.read(productActionsProvider).updateProduct(
+              productId: widget.productId!,
+              name: name,
+              alias: _aliasController.text,
+              productType: _productType,
+              categoryName: categoryName,
+              brand: _brandController.text,
+              unitSymbol: unitSymbol,
+              targetPrice: _targetPriceController.text,
+              shelfLifeDays: _productType == 'consumable' ? _shelfLifeController.text : '',
+              isPinnedHome: _isPinnedHome,
+              notes: _notesController.text,
+            );
+      } else {
+        final createdProductId = await ref.read(productActionsProvider).createProduct(
+              name: name,
+              alias: _aliasController.text,
+              productType: _productType,
+              categoryName: categoryName,
+              brand: _brandController.text,
+              unitSymbol: unitSymbol,
+              targetPrice: _targetPriceController.text,
+              shelfLifeDays: _productType == 'consumable' ? _shelfLifeController.text : '',
+              isPinnedHome: _isPinnedHome,
+              notes: _notesController.text,
+            );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('商品已创建')),
+          );
+          context.go('/product/$createdProductId');
+        }
+        return;
+      }
+    } catch (error) {
+      _showError(error.toString().replaceFirst('Bad state: ', ''));
+      setState(() => _isSaving = false);
+      return;
+    }
 
     if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('商品已更新')),
+      );
       Navigator.of(context).pop();
     }
+    if (mounted) {
+      setState(() => _isSaving = false);
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final categories = ref.watch(rootCategoriesProvider).valueOrNull ?? const [];
     final units = ref.watch(unitsProvider).valueOrNull ?? const [];
+    final initialData =
+        widget.isEditing ? ref.watch(productFormInitialDataProvider(widget.productId!)).valueOrNull : null;
+
+    if (widget.isEditing && initialData != null && !_didHydrate) {
+      _hydrate(
+        categoryName: initialData.categoryName,
+        unitSymbol: initialData.unitSymbol,
+        name: initialData.product.name,
+        alias: initialData.product.alias,
+        productType: initialData.product.productType,
+        brand: initialData.product.brand,
+        targetPriceMinor: initialData.product.expectedPriceMinor,
+        shelfLifeDays: initialData.product.defaultShelfLifeDays,
+        isPinnedHome: initialData.product.isPinnedHome,
+        notes: initialData.product.notes,
+      );
+    }
+
     final categoryValue = categories.any((item) => item.name == _selectedCategoryName)
         ? _selectedCategoryName
         : (_selectedCategoryName == '__custom__' ? '__custom__' : null);
@@ -79,8 +241,9 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
         : (_selectedUnitSymbol == '__custom__' ? '__custom__' : null);
 
     return FormPageScaffold(
-      title: '新增商品',
+      title: widget.isEditing ? '编辑商品' : '新增商品',
       primaryAction: _save,
+      isSubmitting: _isSaving,
       children: [
         FormSection(
           title: '基础信息',
@@ -90,10 +253,12 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
             TextField(controller: _aliasController, decoration: const InputDecoration(labelText: '别名')),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
+              key: ValueKey(_productType),
               initialValue: _productType,
               items: const [
                 DropdownMenuItem(value: 'consumable', child: Text('消耗品')),
                 DropdownMenuItem(value: 'durable', child: Text('常驻品')),
+                DropdownMenuItem(value: 'pricing_only', child: Text('计价品')),
               ],
               onChanged: (value) => setState(() => _productType = value ?? 'consumable'),
               decoration: const InputDecoration(labelText: '商品类型'),
@@ -166,11 +331,30 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
         ),
         FormSection(
           title: '策略信息',
-          subtitle: '价格目标、保质期和首页固定状态',
+          subtitle: _productType == 'consumable'
+              ? '价格目标、保质期和首页固定状态'
+              : '价格目标和首页固定状态',
           children: [
-            TextField(controller: _targetPriceController, decoration: const InputDecoration(labelText: '目标价格')),
-            const SizedBox(height: 12),
-            TextField(controller: _shelfLifeController, decoration: const InputDecoration(labelText: '默认保质期（天）')),
+            TextField(
+              controller: _targetPriceController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration:
+                  InputDecoration(labelText: _productType == 'consumable' ? '目标价格' : '参考购入价格'),
+            ),
+            if (_productType == 'consumable') ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _shelfLifeController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: '默认保质期（天）'),
+              ),
+            ] else ...[
+              const SizedBox(height: 12),
+              const Text(
+                '常驻品不设置保质期，可在库存页记录使用周期与日均开销。',
+                style: TextStyle(color: Colors.black54),
+              ),
+            ],
             const SizedBox(height: 12),
             SwitchListTile(
               value: _isPinnedHome,
@@ -183,11 +367,7 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
         FormSection(
           title: '备注',
           children: [
-            TextField(
-              controller: _notesController,
-              maxLines: 4,
-              decoration: const InputDecoration(labelText: '备注'),
-            ),
+            TextField(controller: _notesController, decoration: const InputDecoration(labelText: '备注')),
           ],
         ),
       ],

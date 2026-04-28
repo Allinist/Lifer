@@ -16,14 +16,14 @@ final unitsProvider = FutureProvider<List<Unit>>((ref) async {
       .get();
 });
 
-final activeProductsProvider = FutureProvider<List<Product>>((ref) async {
+final activeProductsProvider = StreamProvider<List<Product>>((ref) {
   final db = ref.watch(appDatabaseProvider);
   return (db.select(db.products)
         ..where((tbl) => tbl.isArchived.equals(false))
         ..orderBy([
           (tbl) => OrderingTerm(expression: tbl.name),
         ]))
-      .get();
+      .watch();
 });
 
 final channelsProvider = FutureProvider<List<PurchaseChannel>>((ref) {

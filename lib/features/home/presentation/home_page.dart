@@ -5,6 +5,7 @@ import 'package:lifer/app/theme/app_colors.dart';
 import 'package:lifer/core/constants/app_spacing.dart';
 import 'package:lifer/features/home/application/home_models.dart';
 import 'package:lifer/features/home/application/home_providers.dart';
+import 'package:lifer/features/product/application/reminder_actions.dart';
 import 'package:lifer/shared/widgets/app_page_scaffold.dart';
 import 'package:lifer/shared/widgets/section_card.dart';
 
@@ -21,7 +22,17 @@ class HomePage extends ConsumerWidget {
 
     return AppPageScaffold(
       title: 'Lifer',
+      onRefresh: () async {
+        ref.invalidate(homePinnedCardProvider);
+        ref.invalidate(homeReminderCardProvider);
+        ref.invalidate(homeOtherProductGroupsProvider);
+      },
       actions: [
+        IconButton(
+          onPressed: () => _showCreateActions(context),
+          icon: const Icon(Icons.add_rounded),
+          tooltip: '新增',
+        ),
         IconButton(
           onPressed: () => context.go('/inventory'),
           icon: const Icon(Icons.search_rounded),
@@ -35,6 +46,65 @@ class HomePage extends ConsumerWidget {
         _OtherProductsSection(groups: otherGroups),
       ],
     );
+  }
+}
+
+Future<void> _showCreateActions(BuildContext context) async {
+  final action = await showModalBottomSheet<String>(
+    context: context,
+    builder: (context) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.shopping_bag_outlined),
+              title: const Text('新增'),
+              onTap: () => Navigator.of(context).pop('create'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.add_shopping_cart_outlined),
+              title: const Text('补货'),
+              onTap: () => Navigator.of(context).pop('restock'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.remove_shopping_cart_outlined),
+              title: const Text('消耗'),
+              onTap: () => Navigator.of(context).pop('consume'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.sell_outlined),
+              title: const Text('计价'),
+              onTap: () => Navigator.of(context).pop('pricing'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.notifications_active_outlined),
+              title: const Text('提醒'),
+              onTap: () => Navigator.of(context).pop('reminder'),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+
+  if (!context.mounted || action == null) return;
+  switch (action) {
+    case 'create':
+      context.push('/product/create');
+      return;
+    case 'restock':
+      context.push('/restock/create');
+      return;
+    case 'consume':
+      context.push('/consume/create');
+      return;
+    case 'pricing':
+      context.push('/pricing/record/edit');
+      return;
+    case 'reminder':
+      context.push('/reminder-rule/create');
+      return;
   }
 }
 
@@ -81,7 +151,7 @@ class _PinnedProductsSection extends StatelessWidget {
   }
 }
 
-class _ReminderProductsSection extends StatelessWidget {
+class _ReminderProductsSection extends ConsumerWidget {
   const _ReminderProductsSection({
     required this.reminderEvents,
   });
@@ -89,7 +159,7 @@ class _ReminderProductsSection extends StatelessWidget {
   final List<ReminderCardData> reminderEvents;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SectionCard(
       title: '提醒商品',
       subtitle: '按紧急程度排序',
@@ -115,6 +185,8 @@ class _ReminderProductsSection extends StatelessWidget {
                             : event.urgencyScore >= 50
                                 ? AppColors.warning
                                 : AppColors.success,
+                        onPostpone: () => _showHomePostponeOptions(context, ref, event.eventId),
+                        onResolve: () => ref.read(reminderActionsProvider).resolveEvent(event.eventId),
                       ),
                     ),
                   )
@@ -146,9 +218,13 @@ class _OtherProductsSection extends StatelessWidget {
               children: groups
                   .take(8)
                   .map(
-                    (group) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _ExpandableGroup(title: group.title, itemCount: group.itemCount),
+                (group) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _ExpandableGroup(
+                    title: group.title,
+                    itemCount: group.itemCount,
+                    items: group.items,
+                  ),
                     ),
                   )
                   .toList(),
@@ -161,10 +237,12 @@ class _ExpandableGroup extends StatelessWidget {
   const _ExpandableGroup({
     required this.title,
     required this.itemCount,
+    required this.items,
   });
 
   final String title;
   final int itemCount;
+  final List<OtherProductItemData> items;
 
   @override
   Widget build(BuildContext context) {
@@ -173,10 +251,24 @@ class _ExpandableGroup extends StatelessWidget {
         color: AppColors.surfaceMuted,
         borderRadius: BorderRadius.circular(18),
       ),
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text('$itemCount 个商品'),
-        trailing: const Icon(Icons.chevron_right_rounded),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 10),
+          title: Text(title),
+          subtitle: Text('$itemCount 个商品'),
+          children: [
+            for (final item in items)
+              ListTile(
+                dense: true,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                title: Text(item.name),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => context.push('/product/${item.productId}'),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -252,6 +344,8 @@ class _ReminderTile extends StatelessWidget {
     required this.subtitle,
     required this.urgencyLabel,
     required this.color,
+    required this.onPostpone,
+    required this.onResolve,
   });
 
   final String productId;
@@ -259,6 +353,8 @@ class _ReminderTile extends StatelessWidget {
   final String subtitle;
   final String urgencyLabel;
   final Color color;
+  final VoidCallback onPostpone;
+  final VoidCallback onResolve;
 
   @override
   Widget build(BuildContext context) {
@@ -295,7 +391,21 @@ class _ReminderTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            _Badge(label: urgencyLabel, color: color),
+            Column(
+              children: [
+                _Badge(label: urgencyLabel, color: color),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: onPostpone,
+                  child: const Text('稍后'),
+                ),
+                const SizedBox(height: 4),
+                TextButton(
+                  onPressed: onResolve,
+                  child: const Text('处理'),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -326,4 +436,38 @@ class _Badge extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _showHomePostponeOptions(BuildContext context, WidgetRef ref, String eventId) async {
+  final hours = await showModalBottomSheet<int>(
+    context: context,
+    builder: (context) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('1 小时后提醒'),
+              onTap: () => Navigator.of(context).pop(1),
+            ),
+            ListTile(
+              title: const Text('3 小时后提醒'),
+              onTap: () => Navigator.of(context).pop(3),
+            ),
+            ListTile(
+              title: const Text('今天晚些提醒'),
+              onTap: () => Navigator.of(context).pop(8),
+            ),
+            ListTile(
+              title: const Text('明天提醒'),
+              onTap: () => Navigator.of(context).pop(24),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+
+  if (hours == null) return;
+  await ref.read(reminderActionsProvider).postponeEvent(eventId: eventId, hours: hours);
 }

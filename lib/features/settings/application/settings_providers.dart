@@ -26,6 +26,10 @@ final settingsActionsProvider = Provider<SettingsActions>((ref) {
   );
 });
 
+final appDocumentsDirectoryPathProvider = FutureProvider<String>((ref) {
+  return SettingsDataIoService(ref.watch(appDatabaseProvider)).getDocumentsDirectoryPath();
+});
+
 class SettingsActions {
   SettingsActions(this._db, this._dao, this._appIconService, this._dataIoService);
 
@@ -58,6 +62,10 @@ class SettingsActions {
 
   Future<String> exportJson() {
     return _dataIoService.exportJson();
+  }
+
+  Future<String> getDocumentsDirectoryPath() {
+    return _dataIoService.getDocumentsDirectoryPath();
   }
 
   Future<String> importJson() async {

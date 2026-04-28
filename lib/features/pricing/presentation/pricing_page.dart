@@ -7,6 +7,7 @@ import 'package:lifer/core/constants/app_spacing.dart';
 import 'package:lifer/core/utils/formatters.dart';
 import 'package:lifer/features/pricing/application/pricing_models.dart';
 import 'package:lifer/features/pricing/application/pricing_providers.dart';
+import 'package:lifer/features/shared/application/form_options_providers.dart';
 import 'package:lifer/shared/widgets/app_page_scaffold.dart';
 import 'package:lifer/shared/widgets/section_card.dart';
 
@@ -29,6 +30,13 @@ class PricingPage extends ConsumerWidget {
 
     return AppPageScaffold(
       title: '价格',
+      onRefresh: () async {
+        ref.invalidate(activeProductsProvider);
+        ref.invalidate(selectedPricingProductProvider);
+        ref.invalidate(selectedProductPriceRecordsProvider);
+        ref.invalidate(recentPriceRecordItemsProvider);
+        ref.invalidate(channelPriceSummaryProvider);
+      },
       actions: [
         IconButton(
           onPressed: () => context.push('/pricing/channels'),
@@ -37,14 +45,14 @@ class PricingPage extends ConsumerWidget {
         ),
       ],
       children: [
-        FutureBuilder(
-          future: ref.read(allProductsProvider).load(),
-          builder: (context, snapshot) {
-            final products = snapshot.data ?? const [];
+        Builder(
+          builder: (context) {
+            final products = ref.watch(activeProductsProvider).valueOrNull ?? const [];
             final currentId = ref.watch(selectedPricingProductIdProvider);
+            final selectedValue = products.any((item) => item.id == currentId) ? currentId : null;
 
             return DropdownButtonFormField<String>(
-              initialValue: currentId,
+              value: selectedValue,
               decoration: const InputDecoration(
                 labelText: '选择商品',
                 prefixIcon: Icon(Icons.search_rounded),
@@ -122,7 +130,15 @@ class PricingPage extends ConsumerWidget {
         SectionCard(
           title: '最近价格记录',
           subtitle: selectedProduct == null ? '先选择商品' : selectedProduct.name,
-          child: _RecentPriceRecordList(items: recentRecords),
+          child: selectedProduct == null
+              ? const ListTile(
+                  title: Text('请先选择商品'),
+                  subtitle: Text('选择后可查看并编辑该商品最近价格记录。'),
+                )
+              : _RecentPriceRecordList(
+                  productId: selectedProduct.id,
+                  items: recentRecords,
+                ),
         ),
       ],
     );
@@ -242,9 +258,11 @@ class _QuickDateActions extends ConsumerWidget {
 
 class _RecentPriceRecordList extends StatelessWidget {
   const _RecentPriceRecordList({
+    required this.productId,
     required this.items,
   });
 
+  final String productId;
   final List<RecentPriceRecordViewData> items;
 
   @override
@@ -265,6 +283,7 @@ class _RecentPriceRecordList extends StatelessWidget {
                   path: '/pricing/record/edit',
                   queryParameters: {
                     'id': item.recordId,
+                    'productId': productId,
                     'date': item.dateLabel,
                     'price': item.priceLabel,
                     'channel': item.channelLabel,

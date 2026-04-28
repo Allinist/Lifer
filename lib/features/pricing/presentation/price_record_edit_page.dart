@@ -7,7 +7,8 @@ import 'package:lifer/shared/widgets/form_section.dart';
 
 class PriceRecordEditPage extends ConsumerStatefulWidget {
   const PriceRecordEditPage({
-    required this.recordId,
+    this.recordId,
+    this.productId,
     required this.recordDate,
     required this.price,
     required this.channel,
@@ -15,11 +16,14 @@ class PriceRecordEditPage extends ConsumerStatefulWidget {
     super.key,
   });
 
-  final String recordId;
+  final String? recordId;
+  final String? productId;
   final String recordDate;
   final String price;
   final String channel;
   final String quantity;
+
+  bool get isEditing => recordId != null && recordId!.isNotEmpty;
 
   @override
   ConsumerState<PriceRecordEditPage> createState() => _PriceRecordEditPageState();
@@ -31,9 +35,11 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
   late final TextEditingController _quantityController;
   late final TextEditingController _customChannelController;
   late final TextEditingController _customUnitController;
+  late final TextEditingController _customProductController;
 
   String? _selectedChannelName;
   String? _selectedUnitSymbol;
+  String? _selectedProductId;
 
   @override
   void initState() {
@@ -44,8 +50,10 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
     _quantityController = TextEditingController(text: parsedQuantity.$1 ?? '');
     _customChannelController = TextEditingController();
     _customUnitController = TextEditingController();
+    _customProductController = TextEditingController();
     _selectedChannelName = widget.channel == '未设置渠道' ? null : widget.channel;
     _selectedUnitSymbol = parsedQuantity.$2;
+    _selectedProductId = (widget.productId == null || widget.productId!.isEmpty) ? null : widget.productId;
   }
 
   @override
@@ -55,6 +63,7 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
     _quantityController.dispose();
     _customChannelController.dispose();
     _customUnitController.dispose();
+    _customProductController.dispose();
     super.dispose();
   }
 
@@ -65,9 +74,14 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
     final unitSymbol = _selectedUnitSymbol == '__custom__'
         ? _customUnitController.text
         : _selectedUnitSymbol;
+    final selectedProductId = _selectedProductId == '__custom__' ? null : _selectedProductId;
+    final customProductName =
+        _selectedProductId == '__custom__' ? _customProductController.text.trim() : null;
 
-    await ref.read(pricingActionsProvider).updatePriceRecord(
+    await ref.read(pricingActionsProvider).savePriceRecord(
           recordId: widget.recordId,
+          productId: selectedProductId,
+          productName: customProductName,
           recordDate: _dateController.text,
           price: _priceController.text,
           quantity: _quantityController.text,
@@ -81,7 +95,9 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
   }
 
   Future<void> _delete() async {
-    await ref.read(pricingActionsProvider).deletePriceRecord(widget.recordId);
+    final recordId = widget.recordId;
+    if (recordId == null || recordId.isEmpty) return;
+    await ref.read(pricingActionsProvider).deletePriceRecord(recordId);
     if (mounted) {
       Navigator.of(context).pop();
     }
@@ -89,8 +105,12 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final products = ref.watch(activeProductsProvider).valueOrNull ?? const [];
     final channels = ref.watch(channelsProvider).valueOrNull ?? const [];
     final units = ref.watch(unitsProvider).valueOrNull ?? const [];
+    final selectedProductValue = products.any((item) => item.id == _selectedProductId)
+        ? _selectedProductId
+        : (_selectedProductId == '__custom__' ? '__custom__' : null);
     final selectedChannelValue = channels.any((item) => item.name == _selectedChannelName)
         ? _selectedChannelName
         : (_selectedChannelName == '__custom__' ? '__custom__' : null);
@@ -99,12 +119,34 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
         : (_selectedUnitSymbol == '__custom__' ? '__custom__' : null);
 
     return FormPageScaffold(
-      title: '编辑价格记录',
+      title: widget.isEditing ? '编辑价格记录' : '新增价格记录',
       primaryAction: _save,
       children: [
         FormSection(
           title: '价格信息',
           children: [
+            DropdownButtonFormField<String>(
+              value: selectedProductValue,
+              decoration: const InputDecoration(labelText: '关联商品'),
+              items: [
+                ...products.map(
+                  (product) => DropdownMenuItem(
+                    value: product.id,
+                    child: Text(product.name),
+                  ),
+                ),
+                const DropdownMenuItem(value: '__custom__', child: Text('新建计价商品')),
+              ],
+              onChanged: (value) => setState(() => _selectedProductId = value),
+            ),
+            if (_selectedProductId == '__custom__') ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _customProductController,
+                decoration: const InputDecoration(labelText: '计价商品名称'),
+              ),
+            ],
+            const SizedBox(height: 12),
             TextField(
               controller: _dateController,
               decoration: const InputDecoration(labelText: '购买日期'),
@@ -175,12 +217,14 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
                 decoration: const InputDecoration(labelText: '新渠道名称'),
               ),
             ],
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: _delete,
-              icon: const Icon(Icons.delete_outline_rounded),
-              label: const Text('删除这条价格记录'),
-            ),
+            if (widget.isEditing) ...[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: _delete,
+                icon: const Icon(Icons.delete_outline_rounded),
+                label: const Text('删除这条价格记录'),
+              ),
+            ],
           ],
         ),
       ],

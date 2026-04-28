@@ -17,7 +17,9 @@ class _ChannelManagementPageState extends ConsumerState<ChannelManagementPage> {
   final _nameController = TextEditingController();
   final _urlController = TextEditingController();
   final _addressController = TextEditingController();
+
   String _channelType = 'offline';
+  String? _editingChannelId;
 
   @override
   void dispose() {
@@ -27,8 +29,29 @@ class _ChannelManagementPageState extends ConsumerState<ChannelManagementPage> {
     super.dispose();
   }
 
+  void _applyChannel(PurchaseChannel channel) {
+    setState(() {
+      _editingChannelId = channel.id;
+      _channelType = channel.channelType;
+      _nameController.text = channel.name;
+      _urlController.text = channel.url ?? '';
+      _addressController.text = channel.address ?? '';
+    });
+  }
+
+  void _resetForm() {
+    setState(() {
+      _editingChannelId = null;
+      _channelType = 'offline';
+      _nameController.clear();
+      _urlController.clear();
+      _addressController.clear();
+    });
+  }
+
   Future<void> _save() async {
     await ref.read(pricingActionsProvider).createOrUpdateChannel(
+          channelId: _editingChannelId,
           name: _nameController.text,
           channelType: _channelType,
           url: _urlController.text,
@@ -36,12 +59,7 @@ class _ChannelManagementPageState extends ConsumerState<ChannelManagementPage> {
         );
 
     if (mounted) {
-      _nameController.clear();
-      _urlController.clear();
-      _addressController.clear();
-      setState(() {
-        _channelType = 'offline';
-      });
+      _resetForm();
     }
   }
 
@@ -52,10 +70,10 @@ class _ChannelManagementPageState extends ConsumerState<ChannelManagementPage> {
     return FormPageScaffold(
       title: '渠道管理',
       primaryAction: _save,
-      primaryLabel: '保存渠道',
+      primaryLabel: _editingChannelId == null ? '保存渠道' : '更新渠道',
       children: [
         FormSection(
-          title: '新增或维护渠道',
+          title: _editingChannelId == null ? '新增渠道' : '编辑渠道',
           children: [
             TextField(
               controller: _nameController,
@@ -85,10 +103,18 @@ class _ChannelManagementPageState extends ConsumerState<ChannelManagementPage> {
               controller: _addressController,
               decoration: const InputDecoration(labelText: '地址'),
             ),
+            if (_editingChannelId != null) ...[
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: _resetForm,
+                child: const Text('取消编辑'),
+              ),
+            ],
           ],
         ),
         FormSection(
           title: '现有渠道',
+          subtitle: '点击任一渠道即可回填到上方表单继续编辑',
           children: [
             channelsAsync.when(
               data: (channels) {
@@ -103,8 +129,12 @@ class _ChannelManagementPageState extends ConsumerState<ChannelManagementPage> {
                       .map(
                         (channel) => ListTile(
                           contentPadding: EdgeInsets.zero,
+                          onTap: () => _applyChannel(channel),
                           title: Text(channel.name),
                           subtitle: Text('${channel.channelType} · ${channel.url ?? channel.address ?? '--'}'),
+                          trailing: _editingChannelId == channel.id
+                              ? const Icon(Icons.edit_rounded)
+                              : const Icon(Icons.chevron_right_rounded),
                         ),
                       )
                       .toList(),

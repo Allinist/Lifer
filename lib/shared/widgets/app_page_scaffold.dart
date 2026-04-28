@@ -6,12 +6,14 @@ class AppPageScaffold extends StatelessWidget {
     required this.title,
     required this.children,
     this.actions = const [],
+    this.onRefresh,
     super.key,
   });
 
   final String title;
   final List<Widget> children;
   final List<Widget> actions;
+  final Future<void> Function()? onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +23,13 @@ class AppPageScaffold extends StatelessWidget {
         actions: actions,
       ),
       body: SafeArea(
-        child: ListView(
-          padding: AppSpacing.pageInsets,
-          children: children,
+        child: RefreshIndicator(
+          onRefresh: onRefresh ?? () async {},
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: AppSpacing.pageInsets,
+            children: children,
+          ),
         ),
       ),
     );

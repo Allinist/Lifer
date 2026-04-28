@@ -54,7 +54,9 @@ final homePinnedCardProvider = FutureProvider<List<HomeProductCardData>>((ref) a
             : '购入价格 ${Formatters.currencyFromMinor(latestPrice?.amountMinor)}',
         bottomLine: product.productType == 'consumable'
             ? '库存 ${Formatters.quantity(remainingQuantity)} · 最近到期 ${Formatters.fullDateFromMillis(nearestExpiry)}'
-            : '最近购入 ${Formatters.fullDateFromMillis(latestPrice?.purchasedAt)}',
+            : (product.productType == 'pricing_only'
+                ? '仅计价追踪 · 最近购入 ${Formatters.fullDateFromMillis(latestPrice?.purchasedAt)}'
+                : '最近购入 ${Formatters.fullDateFromMillis(latestPrice?.purchasedAt)}'),
       ),
     );
   }
@@ -71,6 +73,7 @@ final homeReminderCardProvider = FutureProvider<List<ReminderCardData>>((ref) as
         .getSingleOrNull();
     items.add(
       ReminderCardData(
+        eventId: event.id,
         productId: event.productId,
         title: product?.name ?? event.eventType,
         subtitle: '紧急度 ${event.urgencyScore} · 触发时间 ${Formatters.fullDateFromMillis(event.dueAt)}',
@@ -106,16 +109,29 @@ final homeOtherProductGroupsProvider = FutureProvider<List<OtherProductGroupData
     }
   }
 
-  final counts = <String, int>{};
+  final groupedItems = <String, List<OtherProductItemData>>{};
   for (final product in products) {
-    final typeLabel = product.productType == 'consumable' ? '消耗品' : '常驻品';
+    final typeLabel = product.productType == 'consumable'
+        ? '消耗品'
+        : (product.productType == 'pricing_only' ? '计价品' : '常驻品');
     final categoryLabel = categoryMap[product.categoryId] ?? '未分类';
     final key = '$typeLabel · $categoryLabel';
-    counts.update(key, (value) => value + 1, ifAbsent: () => 1);
+    groupedItems.putIfAbsent(key, () => <OtherProductItemData>[]).add(
+          OtherProductItemData(
+            productId: product.id,
+            name: product.name,
+          ),
+        );
   }
 
-  return counts.entries
-      .map((entry) => OtherProductGroupData(title: entry.key, itemCount: entry.value))
+  return groupedItems.entries
+      .map(
+        (entry) => OtherProductGroupData(
+          title: entry.key,
+          itemCount: entry.value.length,
+          items: entry.value,
+        ),
+      )
       .toList()
     ..sort((a, b) => b.itemCount.compareTo(a.itemCount));
 });

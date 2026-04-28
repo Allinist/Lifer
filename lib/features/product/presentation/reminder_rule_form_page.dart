@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lifer/app/providers/database_providers.dart';
 import 'package:lifer/data/local/db/app_database.dart';
 import 'package:lifer/features/product/application/reminder_actions.dart';
 import 'package:lifer/features/shared/application/form_options_providers.dart';
 import 'package:lifer/shared/widgets/form_page_scaffold.dart';
 import 'package:lifer/shared/widgets/form_section.dart';
 
+final reminderRuleProvider = FutureProvider.family<ReminderRule?, String>((ref, ruleId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return ((db.select(db.reminderRules))..where((tbl) => tbl.id.equals(ruleId))).getSingleOrNull();
+});
+
 class ReminderRuleFormPage extends ConsumerStatefulWidget {
   const ReminderRuleFormPage({
     this.initialProductId,
+    this.ruleId,
     super.key,
   });
 
   final String? initialProductId;
+  final String? ruleId;
+
+  bool get isEditing => ruleId != null && ruleId!.isNotEmpty;
 
   @override
   ConsumerState<ReminderRuleFormPage> createState() => _ReminderRuleFormPageState();
@@ -29,6 +39,7 @@ class _ReminderRuleFormPageState extends ConsumerState<ReminderRuleFormPage> {
   String _thresholdType = 'quantity';
   bool _enabled = true;
   String? _selectedProductId;
+  bool _didHydrate = false;
 
   @override
   void initState() {
@@ -54,6 +65,7 @@ class _ReminderRuleFormPageState extends ConsumerState<ReminderRuleFormPage> {
         );
 
     await ref.read(reminderActionsProvider).saveRule(
+          ruleId: widget.ruleId,
           productId: isCustom ? null : _selectedProductId,
           productName: isCustom ? _customProductController.text : (selectedProduct?.name ?? ''),
           ruleType: _ruleType,
@@ -70,9 +82,27 @@ class _ReminderRuleFormPageState extends ConsumerState<ReminderRuleFormPage> {
     }
   }
 
+  void _hydrate(ReminderRule rule) {
+    if (_didHydrate) return;
+    _didHydrate = true;
+    _selectedProductId = rule.productId;
+    _ruleType = rule.ruleType;
+    _thresholdType = rule.thresholdType;
+    _thresholdValueController.text = rule.thresholdValue?.toString() ?? '';
+    _notifyTimeController.text = rule.notifyTimeText ?? '';
+    _repeatIntervalController.text = rule.repeatIntervalHours?.toString() ?? '';
+    _priorityController.text = rule.priority.toString();
+    _enabled = rule.isEnabled;
+  }
+
   @override
   Widget build(BuildContext context) {
     final products = ref.watch(activeProductsProvider).valueOrNull ?? const <Product>[];
+    final existingRule =
+        widget.isEditing ? ref.watch(reminderRuleProvider(widget.ruleId!)).valueOrNull : null;
+    if (existingRule != null) {
+      _hydrate(existingRule);
+    }
     final validThresholds = _thresholdOptionsForRule(_ruleType);
     if (validThresholds.every((item) => item.$1 != _thresholdType)) {
       _thresholdType = validThresholds.first.$1;
@@ -83,7 +113,7 @@ class _ReminderRuleFormPageState extends ConsumerState<ReminderRuleFormPage> {
         : (_selectedProductId == '__custom__' ? '__custom__' : null);
 
     return FormPageScaffold(
-      title: '提醒规则',
+      title: widget.isEditing ? '编辑提醒规则' : '提醒规则',
       primaryAction: () => _save(products),
       children: [
         FormSection(
@@ -112,6 +142,7 @@ class _ReminderRuleFormPageState extends ConsumerState<ReminderRuleFormPage> {
             ],
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
+              key: ValueKey(_ruleType),
               initialValue: _ruleType,
               items: const [
                 DropdownMenuItem(value: 'restock', child: Text('补货提醒')),
@@ -128,7 +159,7 @@ class _ReminderRuleFormPageState extends ConsumerState<ReminderRuleFormPage> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              key: ValueKey(_ruleType),
+              key: ValueKey('threshold_$_ruleType'),
               initialValue: _thresholdType,
               items: validThresholds
                   .map(

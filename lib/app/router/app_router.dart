@@ -4,6 +4,7 @@ import 'package:lifer/features/home/presentation/home_page.dart';
 import 'package:lifer/features/inventory/presentation/consumption_form_page.dart';
 import 'package:lifer/features/inventory/presentation/inventory_page.dart';
 import 'package:lifer/features/inventory/presentation/restock_form_page.dart';
+import 'package:lifer/features/inventory/presentation/stock_batch_edit_page.dart';
 import 'package:lifer/features/notes/presentation/notes_page.dart';
 import 'package:lifer/features/pricing/presentation/channel_management_page.dart';
 import 'package:lifer/features/pricing/presentation/price_record_edit_page.dart';
@@ -66,6 +67,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
+        path: '/product/create',
+        builder: (context, state) => ProductFormPage(
+          initialProductType: state.uri.queryParameters['type'],
+        ),
+      ),
+      GoRoute(
         path: '/product/:productId',
         builder: (context, state) {
           final productId = state.pathParameters['productId'] ?? '';
@@ -73,16 +80,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        path: '/product/create',
-        builder: (context, state) => const ProductFormPage(),
+        path: '/product/edit/:productId',
+        builder: (context, state) {
+          final productId = state.pathParameters['productId'] ?? '';
+          return ProductFormPage(productId: productId);
+        },
       ),
       GoRoute(
         path: '/restock/create',
-        builder: (context, state) => const RestockFormPage(),
+        builder: (context, state) => RestockFormPage(
+          initialProductId: state.uri.queryParameters['productId'],
+        ),
       ),
       GoRoute(
         path: '/consume/create',
-        builder: (context, state) => const ConsumptionFormPage(),
+        builder: (context, state) => ConsumptionFormPage(
+          initialProductId: state.uri.queryParameters['productId'],
+          initialBatchLabel: state.uri.queryParameters['batchLabel'],
+          consumptionId: state.uri.queryParameters['id'],
+        ),
+      ),
+      GoRoute(
+        path: '/inventory/batch/edit/:batchId',
+        builder: (context, state) => StockBatchEditPage(
+          batchId: state.pathParameters['batchId'] ?? '',
+        ),
       ),
       GoRoute(
         path: '/reminder-rule/create',
@@ -91,9 +113,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: '/reminder-rule/edit/:ruleId',
+        builder: (context, state) => ReminderRuleFormPage(
+          ruleId: state.pathParameters['ruleId'],
+          initialProductId: state.uri.queryParameters['productId'],
+        ),
+      ),
+      GoRoute(
         path: '/pricing/record/edit',
         builder: (context, state) => PriceRecordEditPage(
-          recordId: state.uri.queryParameters['id'] ?? '',
+          recordId: state.uri.queryParameters['id'],
+          productId: state.uri.queryParameters['productId'],
           recordDate: state.uri.queryParameters['date'] ?? '',
           price: state.uri.queryParameters['price'] ?? '',
           channel: state.uri.queryParameters['channel'] ?? '',

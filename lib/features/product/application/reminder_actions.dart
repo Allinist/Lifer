@@ -19,6 +19,7 @@ class ReminderActions {
   final Uuid _uuid;
 
   Future<void> saveRule({
+    String? ruleId,
     String? productId,
     required String productName,
     required String ruleType,
@@ -41,7 +42,7 @@ class ReminderActions {
 
     await _db.reminderDao.upsertReminderRule(
       ReminderRulesCompanion.insert(
-        id: _uuid.v4(),
+        id: ruleId ?? _uuid.v4(),
         productId: resolvedProductId,
         ruleType: ruleType,
         thresholdType: thresholdType,
@@ -53,6 +54,32 @@ class ReminderActions {
         priority: Value(int.tryParse(priority.trim()) ?? 0),
         createdAt: now,
         updatedAt: now,
+      ),
+    );
+  }
+
+  Future<void> resolveEvent(String eventId) {
+    return _db.reminderDao.markEventResolved(eventId);
+  }
+
+  Future<void> postponeEvent({
+    required String eventId,
+    int hours = 24,
+  }) {
+    return _db.reminderDao.postponeEvent(
+      eventId: eventId,
+      delay: Duration(hours: hours),
+    );
+  }
+
+  Future<void> setRuleEnabled({
+    required String ruleId,
+    required bool enabled,
+  }) {
+    return (_db.update(_db.reminderRules)..where((tbl) => tbl.id.equals(ruleId))).write(
+      ReminderRulesCompanion(
+        isEnabled: Value(enabled),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
   }

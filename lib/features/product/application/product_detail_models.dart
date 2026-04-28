@@ -17,3 +17,19 @@ class ProductDetailViewData {
   final String stockLabel;
   final String expiryLabel;
 }
+
+class ProductRecentPriceViewData {
+  const ProductRecentPriceViewData({
+    required this.recordId,
+    required this.dateLabel,
+    required this.priceLabel,
+    required this.quantityLabel,
+    required this.channelLabel,
+  });
+
+  final String recordId;
+  final String dateLabel;
+  final String priceLabel;
+  final String quantityLabel;
+  final String channelLabel;
+}

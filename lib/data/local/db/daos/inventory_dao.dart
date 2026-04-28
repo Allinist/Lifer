@@ -89,6 +89,148 @@ class InventoryDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
+  Future<void> recordConsumptionAllocations({
+    required List<ConsumptionRecordsCompanion> consumptionEntries,
+    required Map<String, double> batchRemainingById,
+  }) {
+    return transaction(() async {
+      for (final entry in consumptionEntries) {
+        await into(consumptionRecords).insertOnConflictUpdate(entry);
+      }
+      for (final item in batchRemainingById.entries) {
+        await (update(stockBatches)..where((tbl) => tbl.id.equals(item.key))).write(
+          StockBatchesCompanion(
+            remainingQuantity: Value(item.value),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> updateStockBatch({
+    required String batchId,
+    required StockBatchesCompanion batchEntry,
+    String? sourcePriceRecordId,
+    PriceRecordsCompanion? sourcePriceRecordEntry,
+  }) {
+    return transaction(() async {
+      await (update(stockBatches)..where((tbl) => tbl.id.equals(batchId))).write(
+        batchEntry.copyWith(
+          sourcePriceRecordId: sourcePriceRecordId == null
+              ? const Value.absent()
+              : Value(sourcePriceRecordId.isEmpty ? null : sourcePriceRecordId),
+        ),
+      );
+      if (sourcePriceRecordId != null &&
+          sourcePriceRecordId.isNotEmpty &&
+          sourcePriceRecordEntry != null) {
+        await (update(priceRecords)..where((tbl) => tbl.id.equals(sourcePriceRecordId))).write(
+          sourcePriceRecordEntry,
+        );
+      }
+    });
+  }
+
+  Future<void> updateConsumptionRecord({
+    required String consumptionId,
+    required ConsumptionRecordsCompanion consumptionEntry,
+    String? batchId,
+    double? nextRemainingQuantity,
+    String? previousBatchId,
+    double? previousRemainingQuantity,
+  }) {
+    return transaction(() async {
+      await (update(consumptionRecords)..where((tbl) => tbl.id.equals(consumptionId))).write(
+        consumptionEntry,
+      );
+      if (previousBatchId != null &&
+          previousBatchId.isNotEmpty &&
+          previousRemainingQuantity != null) {
+        await (update(stockBatches)..where((tbl) => tbl.id.equals(previousBatchId))).write(
+          StockBatchesCompanion(
+            remainingQuantity: Value(previousRemainingQuantity),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
+      }
+      if (batchId != null && batchId.isNotEmpty && nextRemainingQuantity != null) {
+        await (update(stockBatches)..where((tbl) => tbl.id.equals(batchId))).write(
+          StockBatchesCompanion(
+            remainingQuantity: Value(nextRemainingQuantity),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> replaceConsumptionWithAllocations({
+    required String consumptionId,
+    required ConsumptionRecordsCompanion updatedPrimaryEntry,
+    required List<ConsumptionRecordsCompanion> extraEntries,
+    required String? previousBatchId,
+    required double? previousRemainingQuantity,
+    required Map<String, double> batchRemainingById,
+  }) {
+    return transaction(() async {
+      await (update(consumptionRecords)..where((tbl) => tbl.id.equals(consumptionId))).write(
+        updatedPrimaryEntry,
+      );
+      if (extraEntries.isNotEmpty) {
+        for (final entry in extraEntries) {
+          await into(consumptionRecords).insertOnConflictUpdate(entry);
+        }
+      }
+      if (previousBatchId != null &&
+          previousBatchId.isNotEmpty &&
+          previousRemainingQuantity != null &&
+          !batchRemainingById.containsKey(previousBatchId)) {
+        await (update(stockBatches)..where((tbl) => tbl.id.equals(previousBatchId))).write(
+          StockBatchesCompanion(
+            remainingQuantity: Value(previousRemainingQuantity),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
+      }
+      for (final item in batchRemainingById.entries) {
+        await (update(stockBatches)..where((tbl) => tbl.id.equals(item.key))).write(
+          StockBatchesCompanion(
+            remainingQuantity: Value(item.value),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> archiveStockBatch(String batchId) {
+    return (update(stockBatches)..where((tbl) => tbl.id.equals(batchId))).write(
+      StockBatchesCompanion(
+        isArchived: const Value(true),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  Future<void> deleteConsumptionRecord({
+    required String consumptionId,
+    String? batchId,
+    double? restoredRemainingQuantity,
+  }) {
+    return transaction(() async {
+      await (delete(consumptionRecords)..where((tbl) => tbl.id.equals(consumptionId))).go();
+      if (batchId != null && batchId.isNotEmpty && restoredRemainingQuantity != null) {
+        await (update(stockBatches)..where((tbl) => tbl.id.equals(batchId))).write(
+          StockBatchesCompanion(
+            remainingQuantity: Value(restoredRemainingQuantity),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
+      }
+    });
+  }
+
   Future<void> upsertUsagePeriod(DurableUsagePeriodsCompanion entry) {
     return into(durableUsagePeriods).insertOnConflictUpdate(entry);
   }

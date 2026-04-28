@@ -21,6 +21,37 @@ class InventoryPage extends ConsumerWidget {
 
     return AppPageScaffold(
       title: '库存',
+      onRefresh: () async {
+        ref.invalidate(inventoryProductsProvider);
+        ref.invalidate(selectedInventoryBatchesProvider);
+        ref.invalidate(selectedInventoryUsageProvider);
+      },
+      actions: [
+        IconButton(
+          onPressed: () {
+            final productId = ref.read(selectedInventoryProductIdProvider);
+            final uri = Uri(
+              path: '/restock/create',
+              queryParameters: productId == null ? null : {'productId': productId},
+            );
+            context.push(uri.toString());
+          },
+          icon: const Icon(Icons.add_shopping_cart_outlined),
+          tooltip: '记录补货',
+        ),
+        IconButton(
+          onPressed: () {
+            final productId = ref.read(selectedInventoryProductIdProvider);
+            final uri = Uri(
+              path: '/consume/create',
+              queryParameters: productId == null ? null : {'productId': productId},
+            );
+            context.push(uri.toString());
+          },
+          icon: const Icon(Icons.remove_shopping_cart_outlined),
+          tooltip: '记录消耗',
+        ),
+      ],
       children: [
         _SearchAndSegment(products: filteredProducts),
         const SizedBox(height: AppSpacing.section),

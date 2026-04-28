@@ -47,7 +47,9 @@ final productDetailProvider =
   return ProductDetailViewData(
     productId: product.id,
     name: product.name,
-    productTypeLabel: product.productType == 'consumable' ? '消耗品' : '常驻品',
+    productTypeLabel: product.productType == 'consumable'
+        ? '消耗品'
+        : (product.productType == 'pricing_only' ? '计价品' : '常驻品'),
     categoryLabel: category?.name ?? '未分类',
     latestPriceLabel: Formatters.currencyFromMinor(latestPrice?.amountMinor),
     stockLabel: Formatters.quantity(totalRemaining),
@@ -55,10 +57,15 @@ final productDetailProvider =
   );
 });
 
-final productRecentPricesProvider =
-    FutureProvider.family<List<PriceRecord>, String>((ref, productId) async {
+final productProvider = FutureProvider.family<Product?, String>((ref, productId) async {
   final db = ref.watch(appDatabaseProvider);
-  return ((db.select(db.priceRecords))
+  return ((db.select(db.products))..where((tbl) => tbl.id.equals(productId))).getSingleOrNull();
+});
+
+final productRecentPricesProvider =
+    FutureProvider.family<List<ProductRecentPriceViewData>, String>((ref, productId) async {
+  final db = ref.watch(appDatabaseProvider);
+  final records = await ((db.select(db.priceRecords))
         ..where((tbl) => tbl.productId.equals(productId))
         ..orderBy([
           (tbl) => OrderingTerm(
@@ -68,6 +75,40 @@ final productRecentPricesProvider =
         ])
         ..limit(5))
       .get();
+
+  final channelIds = records.map((item) => item.channelId).whereType<String>().toSet();
+  final unitIds = records.map((item) => item.unitId).whereType<String>().toSet();
+  final channelMap = <String, String>{};
+  final unitMap = <String, String>{};
+
+  for (final channelId in channelIds) {
+    final channel =
+        await ((db.select(db.purchaseChannels))..where((tbl) => tbl.id.equals(channelId))).getSingleOrNull();
+    if (channel != null) {
+      channelMap[channelId] = channel.name;
+    }
+  }
+
+  for (final unitId in unitIds) {
+    final unit = await ((db.select(db.units))..where((tbl) => tbl.id.equals(unitId))).getSingleOrNull();
+    if (unit != null) {
+      unitMap[unitId] = unit.symbol;
+    }
+  }
+
+  return records
+      .map(
+        (record) => ProductRecentPriceViewData(
+          recordId: record.id,
+          dateLabel: Formatters.fullDateFromMillis(record.purchasedAt),
+          priceLabel: Formatters.currencyFromMinor(record.amountMinor),
+          quantityLabel: record.quantity == null
+              ? '--'
+              : '${Formatters.quantity(record.quantity)} ${unitMap[record.unitId] ?? ''}'.trim(),
+          channelLabel: channelMap[record.channelId] ?? '未设置渠道',
+        ),
+      )
+      .toList();
 });
 
 final productBatchesProvider =
@@ -92,6 +133,22 @@ final productReminderRulesProvider =
                 expression: tbl.priority,
                 mode: OrderingMode.desc,
               ),
+        ])
+        ..limit(5))
+      .get();
+});
+
+final productActiveReminderEventsProvider =
+    FutureProvider.family<List<ReminderEvent>, String>((ref, productId) async {
+  final db = ref.watch(appDatabaseProvider);
+  return ((db.select(db.reminderEvents))
+        ..where((tbl) => tbl.productId.equals(productId) & tbl.isResolved.equals(false))
+        ..orderBy([
+          (tbl) => OrderingTerm(
+                expression: tbl.urgencyScore,
+                mode: OrderingMode.desc,
+              ),
+          (tbl) => OrderingTerm(expression: tbl.dueAt),
         ])
         ..limit(5))
       .get();

@@ -7,6 +7,7 @@ class FormPageScaffold extends StatelessWidget {
     required this.children,
     this.primaryAction,
     this.primaryLabel = '保存',
+    this.isSubmitting = false,
     super.key,
   });
 
@@ -14,6 +15,7 @@ class FormPageScaffold extends StatelessWidget {
   final List<Widget> children;
   final Future<void> Function()? primaryAction;
   final String primaryLabel;
+  final bool isSubmitting;
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +28,14 @@ class FormPageScaffold extends StatelessWidget {
             ...children,
             const SizedBox(height: 32),
             FilledButton(
-              onPressed: primaryAction == null ? null : () async => primaryAction!.call(),
-              child: Text(primaryLabel),
+              onPressed: (primaryAction == null || isSubmitting) ? null : () async => primaryAction!.call(),
+              child: isSubmitting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(primaryLabel),
             ),
           ],
         ),

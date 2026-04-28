@@ -11,6 +11,11 @@ class SettingsDataIoService {
 
   final AppDatabase _db;
 
+  Future<String> getDocumentsDirectoryPath() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
   Future<String> exportJson() async {
     final directory = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;

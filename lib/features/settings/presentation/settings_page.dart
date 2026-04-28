@@ -14,6 +14,7 @@ class SettingsPage extends ConsumerWidget {
     final currentLogo = ref.watch(currentLogoAssetProvider);
     final settings = ref.watch(appSettingsStreamProvider).valueOrNull;
     final settingsActions = ref.watch(settingsActionsProvider);
+    final documentsPath = ref.watch(appDocumentsDirectoryPathProvider).valueOrNull ?? '--';
 
     Future<void> runAndToast(Future<String> Function() action, String successPrefix) async {
       try {
@@ -37,6 +38,7 @@ class SettingsPage extends ConsumerWidget {
       children: [
         SectionCard(
           title: '数据管理',
+          subtitle: '应用文档目录：$documentsPath',
           child: Column(
             children: [
               ListTile(
@@ -50,6 +52,16 @@ class SettingsPage extends ConsumerWidget {
                 title: const Text('JSON 导出'),
                 subtitle: const Text('导出到应用文档目录，并额外生成一份 lifer_export_latest.json'),
                 onTap: () => runAndToast(settingsActions.exportJson, '导出完成'),
+              ),
+              const ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text('导入文件名'),
+                subtitle: Text('lifer_import.json'),
+              ),
+              const ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text('最新导出文件名'),
+                subtitle: Text('lifer_export_latest.json'),
               ),
             ],
           ),

@@ -6,14 +6,19 @@ import 'package:lifer/shared/widgets/form_page_scaffold.dart';
 import 'package:lifer/shared/widgets/form_section.dart';
 
 class RestockFormPage extends ConsumerStatefulWidget {
-  const RestockFormPage({super.key});
+  const RestockFormPage({
+    this.initialProductId,
+    super.key,
+  });
+
+  final String? initialProductId;
 
   @override
   ConsumerState<RestockFormPage> createState() => _RestockFormPageState();
 }
 
 class _RestockFormPageState extends ConsumerState<RestockFormPage> {
-  String? _selectedProductName;
+  String? _selectedProductId;
   String? _selectedUnitSymbol;
   String? _selectedChannelName;
 
@@ -26,6 +31,12 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
   final _expiryDateController = TextEditingController();
   final _locationController = TextEditingController();
   final _notesController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedProductId = widget.initialProductId;
+  }
 
   @override
   void dispose() {
@@ -42,9 +53,9 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
   }
 
   Future<void> _save() async {
-    final productName = (_selectedProductName == '__custom__'
+    final productName = (_selectedProductId == '__custom__'
             ? _customProductController.text
-            : _selectedProductName) ??
+            : null) ??
         _customProductController.text;
     final unitSymbol =
         (_selectedUnitSymbol == '__custom__' ? _customUnitController.text : _selectedUnitSymbol) ??
@@ -55,6 +66,7 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
         _customChannelController.text;
 
     await ref.read(inventoryActionsProvider).createRestock(
+          productId: _selectedProductId == '__custom__' ? null : _selectedProductId,
           productName: productName,
           quantity: _quantityController.text,
           unitSymbol: unitSymbol,
@@ -76,6 +88,19 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
     final products = ref.watch(activeProductsProvider).valueOrNull ?? const [];
     final units = ref.watch(unitsProvider).valueOrNull ?? const [];
     final channels = ref.watch(channelsProvider).valueOrNull ?? const [];
+    final selectedProduct = products.cast<dynamic>().firstWhere(
+          (item) => item.id == _selectedProductId,
+          orElse: () => null,
+        );
+    if (selectedProduct != null && _selectedUnitSymbol == null) {
+      final defaultUnit = units.cast<dynamic>().firstWhere(
+            (item) => item.id == selectedProduct.unitId,
+            orElse: () => null,
+          );
+      if (defaultUnit != null) {
+        _selectedUnitSymbol = defaultUnit.symbol as String;
+      }
+    }
 
     return FormPageScaffold(
       title: '补货',
@@ -85,14 +110,14 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
           title: '商品与数量',
           children: [
             DropdownButtonFormField<String>(
-              value: products.any((item) => item.name == _selectedProductName)
-                  ? _selectedProductName
-                  : (_selectedProductName == '__custom__' ? '__custom__' : null),
+              value: products.any((item) => item.id == _selectedProductId)
+                  ? _selectedProductId
+                  : (_selectedProductId == '__custom__' ? '__custom__' : null),
               decoration: const InputDecoration(labelText: '商品'),
               items: [
                 ...products.map(
                   (product) => DropdownMenuItem(
-                    value: product.name,
+                    value: product.id,
                     child: Text(product.name),
                   ),
                 ),
@@ -100,11 +125,11 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
               ],
               onChanged: (value) {
                 setState(() {
-                  _selectedProductName = value;
+                  _selectedProductId = value;
                 });
               },
             ),
-            if (_selectedProductName == '__custom__') ...[
+            if (_selectedProductId == '__custom__') ...[
               const SizedBox(height: 12),
               TextField(
                 controller: _customProductController,

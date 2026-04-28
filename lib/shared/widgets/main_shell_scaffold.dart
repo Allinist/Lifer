@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lifer/app/theme/app_colors.dart';
 
 class MainShellScaffold extends StatelessWidget {
   const MainShellScaffold({
@@ -17,12 +16,13 @@ class MainShellScaffold extends StatelessWidget {
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(0),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: NavigationBar(
+              height: 64,
               selectedIndex: navigationShell.currentIndex,
               destinations: const [
                 NavigationDestination(
@@ -60,13 +60,6 @@ class MainShellScaffold extends StatelessWidget {
             ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.secondary,
-        foregroundColor: Colors.white,
-        onPressed: () => GoRouter.of(context).push('/product/create'),
-        icon: const Icon(Icons.add),
-        label: const Text('新增'),
       ),
     );
   }

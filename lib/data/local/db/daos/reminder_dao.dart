@@ -62,4 +62,25 @@ class ReminderDao extends DatabaseAccessor<AppDatabase> with _$ReminderDaoMixin 
       ),
     );
   }
+
+  Future<void> postponeEvent({
+    required String eventId,
+    required Duration delay,
+  }) async {
+    final existing =
+        await ((select(reminderEvents))..where((tbl) => tbl.id.equals(eventId))).getSingleOrNull();
+    if (existing == null) {
+      return;
+    }
+    final baseDueAt = existing.dueAt ?? DateTime.now().millisecondsSinceEpoch;
+    final nextDueAt = baseDueAt + delay.inMilliseconds;
+    final nextUrgency = existing.urgencyScore >= 20 ? existing.urgencyScore - 20 : existing.urgencyScore;
+    await (update(reminderEvents)..where((tbl) => tbl.id.equals(eventId))).write(
+      ReminderEventsCompanion(
+        dueAt: Value(nextDueAt),
+        urgencyScore: Value(nextUrgency),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
 }

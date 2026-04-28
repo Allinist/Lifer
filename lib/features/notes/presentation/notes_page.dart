@@ -16,6 +16,10 @@ class NotesPage extends ConsumerWidget {
 
     return AppPageScaffold(
       title: '笔记',
+      onRefresh: () async {
+        ref.invalidate(allProductNoteLinksProvider);
+        ref.invalidate(notesObsidianSettingsProvider);
+      },
       children: [
         TextField(
           onChanged: (value) {
