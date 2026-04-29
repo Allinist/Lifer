@@ -26,7 +26,7 @@ class FormPageScaffold extends StatelessWidget {
           padding: AppSpacing.pageInsets,
           children: [
             ...children,
-            const SizedBox(height: 32),
+            const SizedBox(height: 0),
             FilledButton(
               onPressed: (primaryAction == null || isSubmitting) ? null : () async => primaryAction!.call(),
               child: isSubmitting

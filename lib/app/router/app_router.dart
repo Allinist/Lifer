@@ -12,7 +12,9 @@ import 'package:lifer/features/pricing/presentation/pricing_page.dart';
 import 'package:lifer/features/product/presentation/product_detail_page.dart';
 import 'package:lifer/features/product/presentation/product_form_page.dart';
 import 'package:lifer/features/product/presentation/reminder_rule_form_page.dart';
+import 'package:lifer/features/product/presentation/reminder_rule_list_page.dart';
 import 'package:lifer/features/settings/presentation/settings_page.dart';
+import 'package:lifer/features/settings/presentation/theme_settings_page.dart';
 import 'package:lifer/shared/widgets/main_shell_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -107,6 +109,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: '/reminder-rules',
+        builder: (context, state) => const ReminderRuleListPage(),
+      ),
+      GoRoute(
         path: '/reminder-rule/create',
         builder: (context, state) => ReminderRuleFormPage(
           initialProductId: state.uri.queryParameters['productId'],
@@ -133,6 +139,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/pricing/channels',
         builder: (context, state) => const ChannelManagementPage(),
+      ),
+      GoRoute(
+        path: '/settings/theme',
+        builder: (context, state) => const ThemeSettingsPage(),
       ),
     ],
   );

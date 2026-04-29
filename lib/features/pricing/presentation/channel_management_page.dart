@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:lifer/shared/widgets/app_dropdown_field.dart';
+import 'package:lifer/app/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/app/providers/database_providers.dart';
 import 'package:lifer/data/local/db/app_database.dart';
@@ -63,6 +65,25 @@ class _ChannelManagementPageState extends ConsumerState<ChannelManagementPage> {
     }
   }
 
+  Future<void> _deleteCurrent() async {
+    final id = _editingChannelId;
+    if (id == null || id.isEmpty) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除供应商'),
+        content: const Text('删除后，该供应商会从列表移除，历史记录中的渠道会置空。'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('删除')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref.read(pricingActionsProvider).deleteChannel(id);
+    if (mounted) _resetForm();
+  }
+
   @override
   Widget build(BuildContext context) {
     final channelsAsync = ref.watch(_channelsProvider);
@@ -80,7 +101,7 @@ class _ChannelManagementPageState extends ConsumerState<ChannelManagementPage> {
               decoration: const InputDecoration(labelText: '渠道名称'),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               initialValue: _channelType,
               decoration: const InputDecoration(labelText: '渠道类型'),
               items: const [
@@ -105,9 +126,22 @@ class _ChannelManagementPageState extends ConsumerState<ChannelManagementPage> {
             ),
             if (_editingChannelId != null) ...[
               const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: _resetForm,
-                child: const Text('取消编辑'),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _resetForm,
+                      child: const Text('取消编辑'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _deleteCurrent,
+                      child: const Text('删除供应商'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ],
@@ -159,3 +193,7 @@ class _ChannelManagementPageState extends ConsumerState<ChannelManagementPage> {
 final _channelsProvider = FutureProvider<List<PurchaseChannel>>((ref) {
   return ref.watch(pricingDaoProvider).getChannels();
 });
+
+
+
+

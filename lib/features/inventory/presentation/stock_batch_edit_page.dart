@@ -1,12 +1,16 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:lifer/shared/widgets/app_dropdown_field.dart';
+import 'package:lifer/app/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import 'package:lifer/app/providers/database_providers.dart';
+import 'package:lifer/core/utils/formatters.dart';
 import 'package:lifer/data/local/db/app_database.dart';
 import 'package:lifer/features/inventory/application/inventory_actions.dart';
 import 'package:lifer/features/shared/application/form_options_providers.dart';
 import 'package:lifer/shared/widgets/form_page_scaffold.dart';
 import 'package:lifer/shared/widgets/form_section.dart';
+import 'package:lifer/shared/widgets/date_input_field.dart';
 
 final stockBatchProvider = FutureProvider.family<StockBatche?, String>((ref, batchId) async {
   final db = ref.watch(appDatabaseProvider);
@@ -103,6 +107,23 @@ class _StockBatchEditPageState extends ConsumerState<StockBatchEditPage> {
     }
   }
 
+  Future<void> _deleteBatch() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除批次'),
+        content: const Text('删除后不可恢复，关联记录中的批次引用会被清空。'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('删除')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref.read(inventoryActionsProvider).deleteStockBatch(widget.batchId);
+    if (mounted) Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final batch = ref.watch(stockBatchProvider(widget.batchId)).valueOrNull;
@@ -131,14 +152,14 @@ class _StockBatchEditPageState extends ConsumerState<StockBatchEditPage> {
               decoration: const InputDecoration(labelText: '剩余数量'),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               value: unitValue,
               decoration: const InputDecoration(labelText: '单位'),
               items: [
                 ...units.map(
                   (unit) => DropdownMenuItem(
                     value: unit.symbol,
-                    child: Text('${unit.symbol} · ${unit.name}'),
+                    child: Text(Formatters.unitLabel(symbol: unit.symbol, name: unit.name)),
                   ),
                 ),
                 const DropdownMenuItem(value: '__custom__', child: Text('新建单位')),
@@ -162,22 +183,16 @@ class _StockBatchEditPageState extends ConsumerState<StockBatchEditPage> {
               decoration: const InputDecoration(labelText: '批次名称'),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _purchasedAtController,
-              decoration: const InputDecoration(labelText: '购买时间，例如 2026-04-23'),
-            ),
+            DateInputField(controller: _purchasedAtController, labelText: '购买时间（YYYY-MM-DD）'),
             const SizedBox(height: 12),
-            TextField(
-              controller: _expiryDateController,
-              decoration: const InputDecoration(labelText: '到期时间，例如 2026-05-01'),
-            ),
+            DateInputField(controller: _expiryDateController, labelText: '到期时间（YYYY-MM-DD）'),
             const SizedBox(height: 12),
             TextField(
               controller: _locationController,
               decoration: const InputDecoration(labelText: '存放位置 / 备注'),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               value: sourcePriceRecords.any((item) => item.id == _selectedSourcePriceRecordId)
                   ? _selectedSourcePriceRecordId
                   : null,
@@ -201,6 +216,12 @@ class _StockBatchEditPageState extends ConsumerState<StockBatchEditPage> {
               icon: const Icon(Icons.archive_outlined),
               label: const Text('归档这个批次'),
             ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: _deleteBatch,
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('删除这个批次'),
+            ),
           ],
         ),
       ],
@@ -213,3 +234,9 @@ String _dateText(int? millis) {
   final date = DateTime.fromMillisecondsSinceEpoch(millis);
   return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 }
+
+
+
+
+
+

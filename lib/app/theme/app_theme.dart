@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lifer/app/theme/app_colors.dart';
+import 'package:lifer/app/theme/theme_palette.dart';
 
-ThemeData buildLiferTheme() {
+ThemeData buildLiferTheme({String? themeMode}) {
+  final palette = resolveThemePalette(themeMode);
   final scheme = ColorScheme.fromSeed(
-    seedColor: AppColors.primary,
+    seedColor: palette.primary,
     brightness: Brightness.light,
-    primary: AppColors.primary,
-    secondary: AppColors.secondary,
+    primary: palette.primary,
+    secondary: palette.secondary,
     surface: AppColors.surface,
     error: AppColors.danger,
   );
@@ -58,11 +61,17 @@ ThemeData buildLiferTheme() {
       margin: EdgeInsets.zero,
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.background,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
       foregroundColor: AppColors.text,
+      toolbarHeight: 40,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       labelTextStyle: WidgetStateProperty.all(
@@ -82,7 +91,7 @@ ThemeData buildLiferTheme() {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: const BorderSide(color: AppColors.secondary, width: 1.4),
+        borderSide: BorderSide(color: palette.secondary, width: 1.4),
       ),
     ),
   );

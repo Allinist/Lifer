@@ -132,17 +132,21 @@ class _PinnedProductsSection extends StatelessWidget {
               crossAxisSpacing: AppSpacing.gridGap,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 0.94,
+              childAspectRatio: 1.65,
               children: pinnedProducts
                   .take(6)
                   .map(
                     (product) => _ProductCard(
                       productId: product.productId,
                       name: product.name,
-                      metaTop: product.topLine,
-                      metaBottom: product.bottomLine,
-                      badge: '固定',
-                      badgeColor: AppColors.secondary,
+                      productType: product.productType,
+                      logoUri: product.logoUri,
+                      brandText: product.brandText,
+                      priceText: product.priceText,
+                      stockText: product.stockText,
+                      expiryText: product.expiryText,
+                      dailyCostText: product.dailyCostText,
+                      stockLevel: product.stockLevel,
                     ),
                   )
                   .toList(),
@@ -278,18 +282,26 @@ class _ProductCard extends StatelessWidget {
   const _ProductCard({
     required this.productId,
     required this.name,
-    required this.metaTop,
-    required this.metaBottom,
-    required this.badge,
-    required this.badgeColor,
+    required this.productType,
+    required this.logoUri,
+    required this.brandText,
+    required this.priceText,
+    required this.stockText,
+    required this.expiryText,
+    required this.dailyCostText,
+    required this.stockLevel,
   });
 
   final String productId;
   final String name;
-  final String metaTop;
-  final String metaBottom;
-  final String badge;
-  final Color badgeColor;
+  final String productType;
+  final String? logoUri;
+  final String brandText;
+  final String priceText;
+  final String stockText;
+  final String expiryText;
+  final String dailyCostText;
+  final int stockLevel;
 
   @override
   Widget build(BuildContext context) {
@@ -297,7 +309,7 @@ class _ProductCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(22),
       onTap: () => context.push('/product/$productId'),
       child: Ink(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(22),
@@ -309,31 +321,75 @@ class _ProductCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 38,
-                  height: 38,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
                     color: AppColors.surfaceMuted,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.shopping_bag_outlined),
+                  child: Icon(_iconFromLogo(logoUri), size: 16),
                 ),
                 const Spacer(),
                 _Badge(
-                  label: badge,
-                  color: badgeColor,
+                  label: priceText,
+                  color: AppColors.warning,
                 ),
               ],
             ),
-            const Spacer(),
+            const SizedBox(height: 2),
             Text(name, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),
-            Text(metaTop, style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 4),
-            Text(metaBottom, style: Theme.of(context).textTheme.bodyMedium),
+            if (productType == 'consumable')
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(expiryText, style: Theme.of(context).textTheme.bodyMedium),
+                  ),
+                  Text(
+                    stockText,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: stockLevel == 2
+                              ? AppColors.danger
+                              : (stockLevel == 1 ? AppColors.warning : AppColors.success),
+                        ),
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      dailyCostText,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                  Text(
+                    brandText.isEmpty ? '--' : brandText,
+                    textAlign: TextAlign.right,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
           ],
         ),
       ),
     );
+  }
+}
+
+IconData _iconFromLogo(String? logoUri) {
+  switch (logoUri) {
+    case 'home':
+      return Icons.home_outlined;
+    case 'kitchen':
+      return Icons.kitchen_outlined;
+    case 'health':
+      return Icons.health_and_safety_outlined;
+    case 'car':
+      return Icons.directions_car_outlined;
+    default:
+      return Icons.shopping_bag_outlined;
   }
 }
 

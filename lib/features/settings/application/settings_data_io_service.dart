@@ -22,11 +22,19 @@ class SettingsDataIoService {
     final archiveFile = File(p.join(directory.path, 'lifer_export_$timestamp.json'));
     final latestFile = File(p.join(directory.path, 'lifer_export_latest.json'));
 
-    final payload = jsonEncode(await _buildExportPayload());
-    await archiveFile.writeAsString(payload);
-    await latestFile.writeAsString(payload);
+    final payload = const JsonEncoder.withIndent('  ').convert(await _buildExportPayload());
+    await archiveFile.writeAsString(payload, encoding: utf8);
+    await latestFile.writeAsString(payload, encoding: utf8);
 
     return archiveFile.path;
+  }
+
+  Future<String> exportJsonToPath(String outputFilePath) async {
+    final payload = const JsonEncoder.withIndent('  ').convert(await _buildExportPayload());
+    final outputFile = File(outputFilePath);
+    await outputFile.parent.create(recursive: true);
+    await outputFile.writeAsString(payload, encoding: utf8);
+    return outputFile.path;
   }
 
   Future<String> importJson() async {
@@ -39,9 +47,60 @@ class SettingsDataIoService {
       throw StateError('未找到可导入文件，请先放入 lifer_import.json 或先执行一次导出。');
     }
 
-    final jsonMap = jsonDecode(await source.readAsString()) as Map<String, dynamic>;
+    final rawText = await source.readAsString(encoding: utf8);
+    late final Map<String, dynamic> jsonMap;
+    try {
+      final decoded = jsonDecode(rawText);
+      if (decoded is! Map<String, dynamic>) {
+        throw const FormatException('JSON 根节点必须是对象');
+      }
+      jsonMap = decoded;
+    } on FormatException catch (error) {
+      throw StateError('JSON 格式无效：${error.message}');
+    }
+
+    final schemaVersion = jsonMap['schemaVersion'];
+    if (schemaVersion is! int) {
+      throw StateError('JSON 缺少 schemaVersion，无法导入');
+    }
+    if (schemaVersion != _db.schemaVersion) {
+      throw StateError('JSON schemaVersion=$schemaVersion 与当前版本 ${_db.schemaVersion} 不匹配');
+    }
+
+    final backupPath = await exportJson();
     await _restoreFromPayload(jsonMap);
-    return source.path;
+    return '${source.path}\n备份已生成：$backupPath';
+  }
+
+  Future<String> importJsonFromPath(String sourceFilePath) async {
+    final source = File(sourceFilePath);
+    if (!await source.exists()) {
+      throw StateError('未找到导入文件：$sourceFilePath');
+    }
+
+    final rawText = await source.readAsString(encoding: utf8);
+    late final Map<String, dynamic> jsonMap;
+    try {
+      final decoded = jsonDecode(rawText);
+      if (decoded is! Map<String, dynamic>) {
+        throw const FormatException('JSON 根节点必须是对象');
+      }
+      jsonMap = decoded;
+    } on FormatException catch (error) {
+      throw StateError('JSON 格式无效：${error.message}');
+    }
+
+    final schemaVersion = jsonMap['schemaVersion'];
+    if (schemaVersion is! int) {
+      throw StateError('JSON 缺少 schemaVersion，无法导入');
+    }
+    if (schemaVersion != _db.schemaVersion) {
+      throw StateError('JSON schemaVersion=$schemaVersion 与当前版本 ${_db.schemaVersion} 不匹配');
+    }
+
+    final backupPath = await exportJson();
+    await _restoreFromPayload(jsonMap);
+    return '${source.path}\n备份已生成：$backupPath';
   }
 
   Future<Map<String, dynamic>> _buildExportPayload() async {

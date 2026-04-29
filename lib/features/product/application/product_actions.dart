@@ -1,3 +1,4 @@
+﻿import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/app/providers/database_providers.dart';
@@ -29,6 +30,10 @@ class ProductActions {
     required String shelfLifeDays,
     required bool isPinnedHome,
     required String notes,
+    String? logoUri,
+    String? durablePurchasedAt,
+    String consumablePriceMode = 'total',
+    String? currencyCode,
   }) async {
     final normalizedName = name.trim();
     if (normalizedName.isEmpty) {
@@ -53,13 +58,50 @@ class ProductActions {
             unitId: Value(unitId),
             brand: Value(brand.trim().isEmpty ? null : brand.trim()),
             expectedPriceMinor: Value(_parseMoney(targetPrice)),
+            currencyCode: Value((currencyCode ?? 'CNY').toUpperCase()),
             defaultShelfLifeDays: Value(_parseInt(shelfLifeDays)),
             isPinnedHome: Value(isPinnedHome),
             notes: Value(notes.trim().isEmpty ? null : notes.trim()),
+            logoUri: Value(logoUri),
+            metadataJson: Value(_buildMetadata(productType: productType, consumablePriceMode: consumablePriceMode)),
             createdAt: now,
             updatedAt: now,
           ),
         );
+    if (productType == 'durable') {
+      final initialPrice = _parseMoney(targetPrice);
+      final purchasedAt = _parseDate(durablePurchasedAt ?? '') ?? now;
+      if (initialPrice != null && initialPrice > 0) {
+        final priceId = _uuid.v4();
+        await _db.into(_db.priceRecords).insert(
+              PriceRecordsCompanion.insert(
+                id: priceId,
+                productId: productId,
+                amountMinor: initialPrice,
+                currencyCode: (currencyCode ?? 'CNY').toUpperCase(),
+                quantity: const Value(null),
+                unitId: Value(unitId),
+                purchasedAt: purchasedAt,
+                sourceType: const Value('initial_durable_price'),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        await _db.into(_db.durableUsagePeriods).insert(
+              DurableUsagePeriodsCompanion.insert(
+                id: _uuid.v4(),
+                productId: productId,
+                priceRecordId: Value(priceId),
+                startAt: purchasedAt,
+                purchasePriceMinor: Value(initialPrice),
+                currencyCode: Value((currencyCode ?? 'CNY').toUpperCase()),
+                averageDailyCostMinor: Value(_computeDailyCostMinor(purchasePriceMinor: initialPrice, startAt: purchasedAt)),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+      }
+    }
     return productId;
   }
 
@@ -75,6 +117,10 @@ class ProductActions {
     required String shelfLifeDays,
     required bool isPinnedHome,
     required String notes,
+    String? logoUri,
+    String? durablePurchasedAt,
+    String consumablePriceMode = 'total',
+    String? currencyCode,
   }) async {
     final normalizedName = name.trim();
     if (normalizedName.isEmpty) {
@@ -98,12 +144,50 @@ class ProductActions {
             unitId: Value(unitId),
             brand: Value(brand.trim().isEmpty ? null : brand.trim()),
             expectedPriceMinor: Value(_parseMoney(targetPrice)),
+            currencyCode: Value((currencyCode ?? 'CNY').toUpperCase()),
             defaultShelfLifeDays: Value(_parseInt(shelfLifeDays)),
             isPinnedHome: Value(isPinnedHome),
             notes: Value(notes.trim().isEmpty ? null : notes.trim()),
+            logoUri: Value(logoUri),
+            metadataJson: Value(_buildMetadata(productType: productType, consumablePriceMode: consumablePriceMode)),
             updatedAt: Value(now),
           ),
         );
+    if (productType == 'durable') {
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      final startAt = _parseDate(durablePurchasedAt ?? '') ?? nowMs;
+      final existing = await ((_db.select(_db.durableUsagePeriods))
+            ..where((tbl) => tbl.productId.equals(productId))
+            ..orderBy([(tbl) => OrderingTerm(expression: tbl.updatedAt, mode: OrderingMode.desc)])
+            ..limit(1))
+          .getSingleOrNull();
+      if (existing == null) {
+        await _db.into(_db.durableUsagePeriods).insert(
+              DurableUsagePeriodsCompanion.insert(
+                id: _uuid.v4(),
+                productId: productId,
+                startAt: startAt,
+                purchasePriceMinor: Value(_parseMoney(targetPrice)),
+                currencyCode: Value((currencyCode ?? 'CNY').toUpperCase()),
+                averageDailyCostMinor: Value(_computeDailyCostMinor(purchasePriceMinor: _parseMoney(targetPrice), startAt: startAt)),
+                createdAt: nowMs,
+                updatedAt: nowMs,
+              ),
+            );
+      } else {
+        await ((_db.update(_db.durableUsagePeriods))
+              ..where((tbl) => tbl.id.equals(existing.id)))
+            .write(
+          DurableUsagePeriodsCompanion(
+            startAt: Value(startAt),
+            purchasePriceMinor: Value(_parseMoney(targetPrice)),
+                currencyCode: Value((currencyCode ?? 'CNY').toUpperCase()),
+                averageDailyCostMinor: Value(_computeDailyCostMinor(purchasePriceMinor: _parseMoney(targetPrice), startAt: startAt)),
+            updatedAt: Value(nowMs),
+          ),
+        );
+      }
+    }
   }
 
   int? _parseMoney(String input) {
@@ -118,6 +202,31 @@ class ProductActions {
     final text = input.trim();
     if (text.isEmpty) return null;
     return int.tryParse(text);
+  }
+  int? _parseDate(String input) {
+    final t = input.trim();
+    if (t.isEmpty) return null;
+    return DateTime.tryParse(t)?.millisecondsSinceEpoch;
+  }
+
+  int? _computeDailyCostMinor({
+    required int? purchasePriceMinor,
+    required int startAt,
+    int? endAt,
+  }) {
+    if (purchasePriceMinor == null || purchasePriceMinor <= 0) return null;
+    final end = endAt ?? DateTime.now().millisecondsSinceEpoch;
+    final days = ((end - startAt) / Duration.millisecondsPerDay).ceil();
+    final safeDays = days <= 0 ? 1 : days;
+    return (purchasePriceMinor / safeDays).round();
+  }
+
+  String? _buildMetadata({
+    required String productType,
+    required String consumablePriceMode,
+  }) {
+    if (productType != 'consumable') return null;
+    return jsonEncode({'consumablePriceMode': consumablePriceMode});
   }
 
   Future<void> _ensureNoDuplicateName({
@@ -134,3 +243,6 @@ class ProductActions {
     throw StateError('同分类下已存在同名商品：$productName');
   }
 }
+
+
+

@@ -1,11 +1,23 @@
 class PricePointViewData {
   const PricePointViewData({
+    required this.timestamp,
     required this.label,
     required this.amountMinor,
   });
 
+  final int timestamp;
   final String label;
   final int amountMinor;
+}
+
+class DurableCostPointViewData {
+  const DurableCostPointViewData({
+    required this.startAt,
+    required this.averageDailyCostMinor,
+  });
+
+  final int startAt;
+  final int averageDailyCostMinor;
 }
 
 class PriceStatsViewData {

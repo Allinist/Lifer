@@ -72,15 +72,20 @@ final selectedInventoryBatchCardsProvider = Provider<List<InventoryBatchViewData
 
 final selectedInventoryUsageCardsProvider = Provider<List<DurableUsageViewData>>((ref) {
   final periods = ref.watch(selectedInventoryUsageProvider).valueOrNull ?? const <DurableUsagePeriod>[];
+  final products = ref.watch(inventoryProductsProvider).valueOrNull ?? const <Product>[];
+  final productMap = {for (final p in products) p.id: p};
   return periods
       .map(
-        (period) => DurableUsageViewData(
+        (period) {
+          final product = productMap[period.productId];
+          return DurableUsageViewData(
           productId: period.productId,
           title: '使用周期',
           summary:
               '开始 ${Formatters.fullDateFromMillis(period.startAt)} · 结束 ${Formatters.fullDateFromMillis(period.endAt)}',
-          metric: '日均 ${Formatters.currencyFromMinor(period.averageDailyCostMinor)}',
-        ),
+          metric: '日均 ${Formatters.currencyFromMinor(period.averageDailyCostMinor, currencyCode: product?.currencyCode)}',
+        );
+        },
       )
       .toList();
 });

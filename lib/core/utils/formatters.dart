@@ -1,7 +1,30 @@
 class Formatters {
-  static String currencyFromMinor(int? amountMinor) {
+  static String unitLabel({
+    required String symbol,
+    required String name,
+  }) {
+    final s = symbol.trim();
+    final n = name.trim();
+    if (s.isEmpty && n.isEmpty) return '--';
+    if (s.isEmpty) return n;
+    if (n.isEmpty || s == n) return s;
+    return '$s · $n';
+  }
+
+  static String currencyFromMinor(int? amountMinor, {String? currencyCode}) {
     if (amountMinor == null) return '--';
-    return (amountMinor / 100).toStringAsFixed(2);
+    final code = (currencyCode ?? 'CNY').toUpperCase();
+    final symbol = switch (code) {
+      'USD' => '\$',
+      'EUR' => '€',
+      'JPY' => '¥',
+      'GBP' => '£',
+      'CHF' => 'CHF ',
+      'CAD' => 'C\$',
+      'KRW' => '₩',
+      _ => '¥',
+    };
+    return '$symbol${(amountMinor / 100).toStringAsFixed(2)}';
   }
 
   static String shortDateFromMillis(int? millis) {

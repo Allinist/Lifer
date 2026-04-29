@@ -1,5 +1,5 @@
-import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:lifer/shared/widgets/app_dropdown_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lifer/app/theme/app_colors.dart';
@@ -8,14 +8,28 @@ import 'package:lifer/core/utils/formatters.dart';
 import 'package:lifer/features/pricing/application/pricing_models.dart';
 import 'package:lifer/features/pricing/application/pricing_providers.dart';
 import 'package:lifer/features/shared/application/form_options_providers.dart';
+import 'package:lifer/shared/widgets/app_line_chart.dart';
 import 'package:lifer/shared/widgets/app_page_scaffold.dart';
 import 'package:lifer/shared/widgets/section_card.dart';
 
-class PricingPage extends ConsumerWidget {
+class PricingPage extends ConsumerStatefulWidget {
   const PricingPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PricingPage> createState() => _PricingPageState();
+}
+
+class _PricingPageState extends ConsumerState<PricingPage> {
+  final _productSearchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _productSearchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selectedProduct = ref.watch(selectedPricingProductProvider).valueOrNull;
     final selectedRange = ref.watch(selectedPricingRangeProvider);
     final customRange = ref.watch(customPricingDateRangeProvider);
@@ -34,10 +48,26 @@ class PricingPage extends ConsumerWidget {
         ref.invalidate(activeProductsProvider);
         ref.invalidate(selectedPricingProductProvider);
         ref.invalidate(selectedProductPriceRecordsProvider);
+        ref.invalidate(selectedProductDurableUsageProvider);
+        ref.invalidate(selectedProductPricePointsProvider);
+        ref.invalidate(selectedProductPriceStatsProvider);
         ref.invalidate(recentPriceRecordItemsProvider);
         ref.invalidate(channelPriceSummaryProvider);
+        ref.invalidate(spendingBreakdownProvider);
       },
       actions: [
+        IconButton(
+          onPressed: () {
+            final productId = ref.read(selectedPricingProductIdProvider);
+            final uri = Uri(
+              path: '/pricing/record/edit',
+              queryParameters: productId == null ? null : {'productId': productId},
+            );
+            context.push(uri.toString());
+          },
+          icon: const Icon(Icons.add_chart_rounded),
+          tooltip: '记录价格',
+        ),
         IconButton(
           onPressed: () => context.push('/pricing/channels'),
           icon: const Icon(Icons.storefront_outlined),
@@ -47,27 +77,49 @@ class PricingPage extends ConsumerWidget {
       children: [
         Builder(
           builder: (context) {
-            final products = ref.watch(activeProductsProvider).valueOrNull ?? const [];
+            final allProducts = ref.watch(activeProductsProvider).valueOrNull ?? const [];
+            final query = _productSearchController.text.trim().toLowerCase();
+            final products = query.isEmpty
+                ? allProducts
+                : allProducts
+                    .where((p) => ('${p.name} ${p.alias ?? ''}').toLowerCase().contains(query))
+                    .toList();
             final currentId = ref.watch(selectedPricingProductIdProvider);
             final selectedValue = products.any((item) => item.id == currentId) ? currentId : null;
 
-            return DropdownButtonFormField<String>(
-              value: selectedValue,
-              decoration: const InputDecoration(
-                labelText: '选择商品',
-                prefixIcon: Icon(Icons.search_rounded),
-              ),
-              items: products
-                  .map(
-                    (product) => DropdownMenuItem<String>(
-                      value: product.id,
-                      child: Text(product.name),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                ref.read(selectedPricingProductIdProvider.notifier).state = value;
-              },
+            return Column(
+              children: [
+                TextField(
+                  controller: _productSearchController,
+                  onChanged: (_) => setState(() {}),
+                  decoration: const InputDecoration(
+                    labelText: '搜索商品',
+                    prefixIcon: Icon(Icons.search_rounded),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                AppDropdownField<String>(
+
+
+
+
+
+
+                  value: selectedValue,
+                  decoration: const InputDecoration(labelText: '选择商品'),
+                  items: products
+                      .map(
+                        (product) => DropdownMenuItem<String>(
+                          value: product.id,
+                          child: Text(product.name),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    ref.read(selectedPricingProductIdProvider.notifier).state = value;
+                  },
+                ),
+              ],
             );
           },
         ),
@@ -94,7 +146,10 @@ class PricingPage extends ConsumerWidget {
         SectionCard(
           title: '价格曲线',
           subtitle: selectedProduct == null ? '先选择商品' : '${selectedProduct.name} · ${selectedRange.label}',
-          child: _PriceLineChart(points: pricePoints),
+          child: _PriceLineChart(
+            points: pricePoints,
+            currencyCode: selectedProduct?.currencyCode,
+          ),
         ),
         const SizedBox(height: AppSpacing.section),
         SectionCard(
@@ -105,9 +160,18 @@ class PricingPage extends ConsumerWidget {
             runSpacing: 12,
             children: [
               _StatChip(label: '记录数', value: '${priceStats.recordCount}'),
-              _StatChip(label: '最近价格', value: _formatMinor(priceStats.latestAmountMinor)),
-              _StatChip(label: '范围最低', value: _formatMinor(priceStats.lowestAmountMinor)),
-              _StatChip(label: '范围最高', value: _formatMinor(priceStats.highestAmountMinor)),
+              _StatChip(
+                label: '最近价格',
+                value: _formatMinor(priceStats.latestAmountMinor, selectedProduct?.currencyCode),
+              ),
+              _StatChip(
+                label: '范围最低',
+                value: _formatMinor(priceStats.lowestAmountMinor, selectedProduct?.currencyCode),
+              ),
+              _StatChip(
+                label: '范围最高',
+                value: _formatMinor(priceStats.highestAmountMinor, selectedProduct?.currencyCode),
+              ),
             ],
           ),
         ),
@@ -118,13 +182,17 @@ class PricingPage extends ConsumerWidget {
           child: _ChannelSummaryList(
             items: channelSummary,
             selectedChannelKey: selectedChannelKey,
+            currencyCode: selectedProduct?.currencyCode,
           ),
         ),
         const SizedBox(height: AppSpacing.section),
         SectionCard(
           title: '支出趋势',
           subtitle: '按月份汇总当前筛选范围内的价格记录',
-          child: _SpendingBreakdown(items: spendingBreakdown),
+          child: _SpendingBreakdown(
+            items: spendingBreakdown,
+            currencyCode: selectedProduct?.currencyCode,
+          ),
         ),
         const SizedBox(height: AppSpacing.section),
         SectionCard(
@@ -310,10 +378,12 @@ class _ChannelSummaryList extends StatelessWidget {
   const _ChannelSummaryList({
     required this.items,
     required this.selectedChannelKey,
+    required this.currencyCode,
   });
 
   final List<ChannelPriceViewData> items;
   final String? selectedChannelKey;
+  final String? currencyCode;
 
   @override
   Widget build(BuildContext context) {
@@ -334,7 +404,7 @@ class _ChannelSummaryList extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
                     color: selected ? AppColors.secondary.withOpacity(0.08) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(16),
+
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 8),
@@ -343,9 +413,11 @@ class _ChannelSummaryList extends StatelessWidget {
                           selected ? null : item.channelKey;
                     },
                     title: Text(item.channelName),
-                    subtitle: Text('记录 ${item.recordCount} 次 · 最低 ${_formatMinor(item.lowestAmountMinor)}'),
+                    subtitle: Text(
+                      '记录 ${item.recordCount} 次 · 最低 ${_formatMinor(item.lowestAmountMinor, currencyCode)}',
+                    ),
                     trailing: Text(
-                      _formatMinor(item.latestAmountMinor),
+                      _formatMinor(item.latestAmountMinor, currencyCode),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
@@ -390,9 +462,11 @@ class _RangeHint extends StatelessWidget {
 class _PriceLineChart extends StatelessWidget {
   const _PriceLineChart({
     required this.points,
+    required this.currencyCode,
   });
 
   final List<PricePointViewData> points;
+  final String? currencyCode;
 
   @override
   Widget build(BuildContext context) {
@@ -405,70 +479,33 @@ class _PriceLineChart extends StatelessWidget {
       );
     }
 
-    final amounts = points.map((point) => point.amountMinor / 100).toList();
-    final minY = amounts.reduce((a, b) => a < b ? a : b);
-    final maxY = amounts.reduce((a, b) => a > b ? a : b);
-    final hasSingleValue = minY == maxY;
-
-    return SizedBox(
-      height: 220,
-      child: LineChart(
-        LineChartData(
-          minY: hasSingleValue ? minY - 1 : minY * 0.96,
-          maxY: hasSingleValue ? maxY + 1 : maxY * 1.04,
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: hasSingleValue ? 1 : null,
+    return AppLineChart(
+      points: [
+        for (var i = 0; i < points.length; i++)
+          AppLinePoint(
+            x: i.toDouble(),
+            y: points[i].amountMinor / 100,
+            label: points[i].label,
+            tooltip:
+                '${Formatters.fullDateFromMillis(points[i].timestamp)}\n${Formatters.currencyFromMinor(points[i].amountMinor, currencyCode: currencyCode)}',
           ),
-          borderData: FlBorderData(show: false),
-          titlesData: FlTitlesData(
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 40,
-                getTitlesWidget: (value, meta) => Text(value.toStringAsFixed(0)),
-              ),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                interval: 1,
-                getTitlesWidget: (value, meta) {
-                  final index = value.toInt();
-                  if (index < 0 || index >= points.length) {
-                    return const SizedBox.shrink();
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(points[index].label),
-                  );
-                },
-              ),
-            ),
-          ),
-          lineBarsData: [
-            LineChartBarData(
-              isCurved: true,
-              color: AppColors.secondary,
-              barWidth: 3,
-              dotData: const FlDotData(show: true),
-              belowBarData: BarAreaData(
-                show: true,
-                color: AppColors.secondary.withOpacity(0.12),
-              ),
-              spots: [
-                for (var i = 0; i < points.length; i++)
-                  FlSpot(i.toDouble(), points[i].amountMinor / 100),
-              ],
-            ),
-          ],
-        ),
-      ),
+      ],
+      color: Theme.of(context).colorScheme.secondary,
+      showBottomLabelAt: (index, length) => _xAxisMarkerIndexes(length).contains(index),
     );
   }
+}
+
+Set<int> _xAxisMarkerIndexes(int length) {
+  if (length <= 1) return {0};
+  if (length <= 4) return {for (var i = 0; i < length; i++) i};
+  return {
+    0,
+    (length * 0.25).round().clamp(0, length - 1),
+    (length * 0.5).round().clamp(0, length - 1),
+    (length * 0.75).round().clamp(0, length - 1),
+    length - 1,
+  };
 }
 
 class _StatChip extends StatelessWidget {
@@ -507,9 +544,11 @@ class _StatChip extends StatelessWidget {
 class _SpendingBreakdown extends StatelessWidget {
   const _SpendingBreakdown({
     required this.items,
+    required this.currencyCode,
   });
 
   final List<SpendingBreakdownViewData> items;
+  final String? currencyCode;
 
   @override
   Widget build(BuildContext context) {
@@ -533,7 +572,7 @@ class _SpendingBreakdown extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(child: Text(row.label, style: style)),
-                    Text(_formatMinor(row.amountMinor), style: style),
+                    Text(_formatMinor(row.amountMinor, currencyCode), style: style),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -552,7 +591,9 @@ class _SpendingBreakdown extends StatelessWidget {
   }
 }
 
-String _formatMinor(int? amountMinor) {
-  if (amountMinor == null) return '--';
-  return (amountMinor / 100).toStringAsFixed(2);
+String _formatMinor(int? amountMinor, String? currencyCode) {
+  return Formatters.currencyFromMinor(amountMinor, currencyCode: currencyCode);
 }
+
+
+

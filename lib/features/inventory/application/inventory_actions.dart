@@ -43,16 +43,20 @@ class InventoryActions {
     final channelId = await _ensureChannel(channelName);
     final priceId = _uuid.v4();
     final batchId = _uuid.v4();
+    final parsedAmountMinor = _parseMoney(totalPrice) ?? 0;
+    final parsedQuantity = _parseDouble(quantity);
+    final parsedUnitPriceMinor = parsedQuantity > 0 ? (parsedAmountMinor / parsedQuantity).round() : null;
 
     await _db.inventoryDao.createRestockBundle(
       priceEntry: PriceRecordsCompanion.insert(
         id: priceId,
         productId: resolvedProductId,
         channelId: Value(channelId),
-        amountMinor: _parseMoney(totalPrice) ?? 0,
+        amountMinor: parsedAmountMinor,
         currencyCode: 'CNY',
-        quantity: Value(_parseDouble(quantity)),
+        quantity: Value(parsedQuantity),
         unitId: Value(unitId),
+        unitPriceMinor: Value(parsedUnitPriceMinor),
         purchasedAt: _parseDate(purchasedAt) ?? now,
         createdAt: now,
         updatedAt: now,
@@ -62,8 +66,8 @@ class InventoryActions {
         productId: resolvedProductId,
         sourcePriceRecordId: Value(priceId),
         channelId: Value(channelId),
-        totalQuantity: _parseDouble(quantity),
-        remainingQuantity: _parseDouble(quantity),
+        totalQuantity: parsedQuantity,
+        remainingQuantity: parsedQuantity,
         unitId: unitId,
         purchasedAt: Value(_parseDate(purchasedAt)),
         expiryDate: Value(_parseDate(expiryDate)),
@@ -77,7 +81,7 @@ class InventoryActions {
         productId: resolvedProductId,
         batchId: Value(batchId),
         priceRecordId: Value(priceId),
-        quantity: _parseDouble(quantity),
+        quantity: parsedQuantity,
         unitId: unitId,
         occurredAt: _parseDate(purchasedAt) ?? now,
         notes: Value(notes.trim().isEmpty ? null : notes.trim()),
@@ -380,6 +384,22 @@ class InventoryActions {
 
   Future<void> archiveStockBatch(String batchId) {
     return _db.inventoryDao.archiveStockBatch(batchId);
+  }
+
+  Future<void> deleteStockBatch(String batchId) async {
+    final id = batchId.trim();
+    if (id.isEmpty) return;
+    await ((_db.update(_db.restockRecords))..where((tbl) => tbl.batchId.equals(id))).write(
+      const RestockRecordsCompanion(batchId: Value(null)),
+    );
+    await ((_db.update(_db.consumptionRecords))..where((tbl) => tbl.batchId.equals(id))).write(
+      const ConsumptionRecordsCompanion(batchId: Value(null)),
+    );
+    await ((_db.update(_db.reminderEvents))..where((tbl) => tbl.batchId.equals(id))).write(
+      const ReminderEventsCompanion(batchId: Value(null)),
+    );
+    await ((_db.delete(_db.stockBatchLocations))..where((tbl) => tbl.batchId.equals(id))).go();
+    await ((_db.delete(_db.stockBatches))..where((tbl) => tbl.id.equals(id))).go();
   }
 
   Future<void> deleteConsumption(String consumptionId) async {

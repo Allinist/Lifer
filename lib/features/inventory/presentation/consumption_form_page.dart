@@ -1,12 +1,16 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:lifer/shared/widgets/app_dropdown_field.dart';
+import 'package:lifer/app/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
 import 'package:lifer/app/providers/database_providers.dart';
+import 'package:lifer/core/utils/formatters.dart';
 import 'package:lifer/data/local/db/app_database.dart';
 import 'package:lifer/features/inventory/application/inventory_actions.dart';
 import 'package:lifer/features/shared/application/form_options_providers.dart';
 import 'package:lifer/shared/widgets/form_page_scaffold.dart';
 import 'package:lifer/shared/widgets/form_section.dart';
+import 'package:lifer/shared/widgets/date_input_field.dart';
 
 final consumptionRecordProvider =
     FutureProvider.family<ConsumptionRecord?, String>((ref, consumptionId) async {
@@ -50,6 +54,7 @@ class _ConsumptionFormPageState extends ConsumerState<ConsumptionFormPage> {
   String? _selectedBatchId;
 
   final _customProductController = TextEditingController();
+  final _productSearchController = TextEditingController();
   final _quantityController = TextEditingController();
   final _customUnitController = TextEditingController();
   final _occurredAtController = TextEditingController();
@@ -70,6 +75,7 @@ class _ConsumptionFormPageState extends ConsumerState<ConsumptionFormPage> {
   @override
   void dispose() {
     _customProductController.dispose();
+    _productSearchController.dispose();
     _quantityController.dispose();
     _customUnitController.dispose();
     _occurredAtController.dispose();
@@ -156,7 +162,19 @@ class _ConsumptionFormPageState extends ConsumerState<ConsumptionFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final products = ref.watch(activeProductsProvider).valueOrNull ?? const <Product>[];
+    final allProducts = ref.watch(activeProductsProvider).valueOrNull ?? const <Product>[];
+    final productSearch = _productSearchController.text.trim().toLowerCase();
+    final sortedProducts = [...allProducts]..sort((a, b) {
+      final sa = a.productType == 'consumable' ? 0 : 1;
+      final sb = b.productType == 'consumable' ? 0 : 1;
+      if (sa != sb) return sa.compareTo(sb);
+      return a.name.compareTo(b.name);
+    });
+    final products = productSearch.isEmpty
+        ? sortedProducts
+        : sortedProducts
+            .where((p) => ('${p.name} ${p.alias ?? ''}').toLowerCase().contains(productSearch))
+            .toList();
     final units = ref.watch(unitsProvider).valueOrNull ?? const <Unit>[];
     final existing =
         widget.isEditing ? ref.watch(consumptionRecordProvider(widget.consumptionId!)).valueOrNull : null;
@@ -188,7 +206,16 @@ class _ConsumptionFormPageState extends ConsumerState<ConsumptionFormPage> {
         FormSection(
           title: '消耗信息',
           children: [
-            DropdownButtonFormField<String>(
+            TextField(
+              controller: _productSearchController,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                labelText: '搜索商品',
+                prefixIcon: Icon(Icons.search_rounded),
+              ),
+            ),
+            const SizedBox(height: 12),
+            AppDropdownField<String>(
               value: products.any((item) => item.id == _selectedProductId)
                   ? _selectedProductId
                   : (_selectedProductId == '__custom__' ? '__custom__' : null),
@@ -218,7 +245,7 @@ class _ConsumptionFormPageState extends ConsumerState<ConsumptionFormPage> {
             const SizedBox(height: 12),
             TextField(controller: _quantityController, decoration: const InputDecoration(labelText: '消耗数量')),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               value: units.any((item) => item.symbol == _selectedUnitSymbol)
                   ? _selectedUnitSymbol
                   : (_selectedUnitSymbol == '__custom__' ? '__custom__' : null),
@@ -227,7 +254,7 @@ class _ConsumptionFormPageState extends ConsumerState<ConsumptionFormPage> {
                 ...units.map(
                   (unit) => DropdownMenuItem(
                     value: unit.symbol,
-                    child: Text('${unit.symbol} · ${unit.name}'),
+                    child: Text(Formatters.unitLabel(symbol: unit.symbol, name: unit.name)),
                   ),
                 ),
                 const DropdownMenuItem(value: '__custom__', child: Text('新建单位')),
@@ -246,10 +273,7 @@ class _ConsumptionFormPageState extends ConsumerState<ConsumptionFormPage> {
               ),
             ],
             const SizedBox(height: 12),
-            TextField(
-              controller: _occurredAtController,
-              decoration: const InputDecoration(labelText: '消耗时间，例如 2026-04-23'),
-            ),
+            DateInputField(controller: _occurredAtController, labelText: '消耗时间（YYYY-MM-DD）'),
           ],
         ),
         FormSection(
@@ -258,7 +282,7 @@ class _ConsumptionFormPageState extends ConsumerState<ConsumptionFormPage> {
             TextField(controller: _batchLabelController, decoration: const InputDecoration(labelText: '批次')),
             if (batches.isNotEmpty) ...[
               const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
+              AppDropdownField<String>(
                 value: batches.any((item) => item.id == _selectedBatchId) ? _selectedBatchId : null,
                 decoration: const InputDecoration(labelText: '真实批次（可切换）'),
                 items: batches.map((batch) {
@@ -274,7 +298,7 @@ class _ConsumptionFormPageState extends ConsumerState<ConsumptionFormPage> {
               ),
             ],
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               key: ValueKey(_usageType),
               initialValue: _usageType,
               items: const [
@@ -321,3 +345,8 @@ String _dateText(int? millis) {
   final date = DateTime.fromMillisecondsSinceEpoch(millis);
   return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 }
+
+
+
+
+

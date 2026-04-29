@@ -51,7 +51,10 @@ final productDetailProvider =
         ? '消耗品'
         : (product.productType == 'pricing_only' ? '计价品' : '常驻品'),
     categoryLabel: category?.name ?? '未分类',
-    latestPriceLabel: Formatters.currencyFromMinor(latestPrice?.amountMinor),
+    latestPriceLabel: Formatters.currencyFromMinor(
+      latestPrice?.amountMinor,
+      currencyCode: product.currencyCode,
+    ),
     stockLabel: Formatters.quantity(totalRemaining),
     expiryLabel: Formatters.fullDateFromMillis(nearestExpiry),
   );
@@ -65,6 +68,8 @@ final productProvider = FutureProvider.family<Product?, String>((ref, productId)
 final productRecentPricesProvider =
     FutureProvider.family<List<ProductRecentPriceViewData>, String>((ref, productId) async {
   final db = ref.watch(appDatabaseProvider);
+  final product = await ((db.select(db.products))..where((tbl) => tbl.id.equals(productId)))
+      .getSingleOrNull();
   final records = await ((db.select(db.priceRecords))
         ..where((tbl) => tbl.productId.equals(productId))
         ..orderBy([
@@ -101,7 +106,10 @@ final productRecentPricesProvider =
         (record) => ProductRecentPriceViewData(
           recordId: record.id,
           dateLabel: Formatters.fullDateFromMillis(record.purchasedAt),
-          priceLabel: Formatters.currencyFromMinor(record.amountMinor),
+          priceLabel: Formatters.currencyFromMinor(
+            record.amountMinor,
+            currencyCode: product?.currencyCode,
+          ),
           quantityLabel: record.quantity == null
               ? '--'
               : '${Formatters.quantity(record.quantity)} ${unitMap[record.unitId] ?? ''}'.trim(),

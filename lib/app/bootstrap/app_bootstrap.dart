@@ -11,6 +11,8 @@ void bootstrap() {
       systemNavigationBarColor: Color(0x00000000),
       systemNavigationBarDividerColor: Color(0x00000000),
       statusBarColor: Color(0x00000000),
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
       systemNavigationBarContrastEnforced: false,
       systemStatusBarContrastEnforced: false,
     ),

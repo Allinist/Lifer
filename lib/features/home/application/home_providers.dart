@@ -1,3 +1,4 @@
+﻿import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/app/providers/database_providers.dart';
@@ -33,6 +34,11 @@ final homePinnedCardProvider = FutureProvider<List<HomeProductCardData>>((ref) a
     final batches = await ((db.select(db.stockBatches))
           ..where((tbl) => tbl.productId.equals(product.id) & tbl.isArchived.equals(false)))
         .get();
+    final latestDurableUsage = await ((db.select(db.durableUsagePeriods))
+          ..where((tbl) => tbl.productId.equals(product.id))
+          ..orderBy([(tbl) => OrderingTerm(expression: tbl.updatedAt, mode: OrderingMode.desc)])
+          ..limit(1))
+        .getSingleOrNull();
 
     final remainingQuantity = batches.fold<double>(0, (sum, batch) => sum + batch.remainingQuantity);
     int? nearestExpiry;
@@ -49,14 +55,26 @@ final homePinnedCardProvider = FutureProvider<List<HomeProductCardData>>((ref) a
         productId: product.id,
         name: product.name,
         productType: product.productType,
-        topLine: product.productType == 'consumable'
-            ? '最近价格 ${Formatters.currencyFromMinor(latestPrice?.amountMinor)}'
-            : '购入价格 ${Formatters.currencyFromMinor(latestPrice?.amountMinor)}',
-        bottomLine: product.productType == 'consumable'
-            ? '库存 ${Formatters.quantity(remainingQuantity)} · 最近到期 ${Formatters.fullDateFromMillis(nearestExpiry)}'
-            : (product.productType == 'pricing_only'
-                ? '仅计价追踪 · 最近购入 ${Formatters.fullDateFromMillis(latestPrice?.purchasedAt)}'
-                : '最近购入 ${Formatters.fullDateFromMillis(latestPrice?.purchasedAt)}'),
+        logoUri: product.logoUri,
+        brandText: (product.brand ?? '').trim(),
+        priceText: (_consumableMode(product) == 'unit' && latestPrice?.unitPriceMinor != null)
+            ? Formatters.currencyFromMinor(
+                latestPrice!.unitPriceMinor,
+                currencyCode: product.currencyCode,
+              )
+            : Formatters.currencyFromMinor(
+                latestPrice?.amountMinor ?? product.expectedPriceMinor,
+                currencyCode: product.currencyCode,
+              ),
+        stockText: Formatters.quantity(remainingQuantity),
+        expiryText: Formatters.fullDateFromMillis(nearestExpiry),
+        dailyCostText: Formatters.currencyFromMinor(
+          latestDurableUsage?.averageDailyCostMinor,
+          currencyCode: product.currencyCode,
+        ),
+        stockLevel: remainingQuantity <= 0
+            ? 2
+            : (remainingQuantity <= 3 ? 1 : 0),
       ),
     );
   }
@@ -135,3 +153,15 @@ final homeOtherProductGroupsProvider = FutureProvider<List<OtherProductGroupData
       .toList()
     ..sort((a, b) => b.itemCount.compareTo(a.itemCount));
 });
+
+String _consumableMode(Product product) {
+  if (product.productType != 'consumable') return 'total';
+  final raw = product.metadataJson;
+  if (raw == null || raw.trim().isEmpty) return 'total';
+  final decoded = jsonDecode(raw);
+  if (decoded is Map<String, dynamic>) {
+    return (decoded['consumablePriceMode'] as String?) ?? 'total';
+  }
+  return 'total';
+}
+

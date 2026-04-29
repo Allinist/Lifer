@@ -1,9 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:lifer/shared/widgets/app_dropdown_field.dart';
+import 'package:lifer/app/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lifer/core/utils/formatters.dart';
 import 'package:lifer/features/inventory/application/inventory_actions.dart';
 import 'package:lifer/features/shared/application/form_options_providers.dart';
 import 'package:lifer/shared/widgets/form_page_scaffold.dart';
 import 'package:lifer/shared/widgets/form_section.dart';
+import 'package:lifer/shared/widgets/date_input_field.dart';
 
 class RestockFormPage extends ConsumerStatefulWidget {
   const RestockFormPage({
@@ -21,8 +25,10 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
   String? _selectedProductId;
   String? _selectedUnitSymbol;
   String? _selectedChannelName;
+  bool _noExpiry = false;
 
   final _customProductController = TextEditingController();
+  final _productSearchController = TextEditingController();
   final _quantityController = TextEditingController();
   final _customUnitController = TextEditingController();
   final _priceController = TextEditingController();
@@ -36,11 +42,14 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
   void initState() {
     super.initState();
     _selectedProductId = widget.initialProductId;
+    final today = DateTime.now().toIso8601String().split('T').first;
+    _notesController.text = today;
   }
 
   @override
   void dispose() {
     _customProductController.dispose();
+    _productSearchController.dispose();
     _quantityController.dispose();
     _customUnitController.dispose();
     _priceController.dispose();
@@ -73,7 +82,7 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
           totalPrice: _priceController.text,
           channelName: channelName,
           purchasedAt: _purchasedAtController.text,
-          expiryDate: _expiryDateController.text,
+          expiryDate: _noExpiry ? '' : _expiryDateController.text,
           locationName: _locationController.text,
           notes: _notesController.text,
         );
@@ -85,7 +94,19 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final products = ref.watch(activeProductsProvider).valueOrNull ?? const [];
+    final allProducts = ref.watch(activeProductsProvider).valueOrNull ?? const [];
+    final productSearch = _productSearchController.text.trim().toLowerCase();
+    final sortedProducts = [...allProducts]..sort((a, b) {
+      final sa = a.productType == 'consumable' ? 0 : 1;
+      final sb = b.productType == 'consumable' ? 0 : 1;
+      if (sa != sb) return sa.compareTo(sb);
+      return a.name.compareTo(b.name);
+    });
+    final products = productSearch.isEmpty
+        ? sortedProducts
+        : sortedProducts
+            .where((p) => ('${p.name} ${p.alias ?? ''}').toLowerCase().contains(productSearch))
+            .toList();
     final units = ref.watch(unitsProvider).valueOrNull ?? const [];
     final channels = ref.watch(channelsProvider).valueOrNull ?? const [];
     final selectedProduct = products.cast<dynamic>().firstWhere(
@@ -109,7 +130,7 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
         FormSection(
           title: '商品与数量',
           children: [
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               value: products.any((item) => item.id == _selectedProductId)
                   ? _selectedProductId
                   : (_selectedProductId == '__custom__' ? '__custom__' : null),
@@ -137,9 +158,18 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
               ),
             ],
             const SizedBox(height: 12),
+            TextField(
+              controller: _productSearchController,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                labelText: '搜索商品',
+                prefixIcon: Icon(Icons.search_rounded),
+              ),
+            ),
+            const SizedBox(height: 12),
             TextField(controller: _quantityController, decoration: const InputDecoration(labelText: '数量')),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               value: units.any((item) => item.symbol == _selectedUnitSymbol)
                   ? _selectedUnitSymbol
                   : (_selectedUnitSymbol == '__custom__' ? '__custom__' : null),
@@ -148,7 +178,7 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
                 ...units.map(
                   (unit) => DropdownMenuItem(
                     value: unit.symbol,
-                    child: Text('${unit.symbol} · ${unit.name}'),
+                    child: Text(Formatters.unitLabel(symbol: unit.symbol, name: unit.name)),
                   ),
                 ),
                 const DropdownMenuItem(value: '__custom__', child: Text('新建单位')),
@@ -173,7 +203,7 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
           children: [
             TextField(controller: _priceController, decoration: const InputDecoration(labelText: '总价')),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               value: channels.any((item) => item.name == _selectedChannelName)
                   ? _selectedChannelName
                   : (_selectedChannelName == '__custom__' ? '__custom__' : null),
@@ -201,19 +231,20 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
               ),
             ],
             const SizedBox(height: 12),
-            TextField(
-              controller: _purchasedAtController,
-              decoration: const InputDecoration(labelText: '购买时间，例如 2026-04-23'),
-            ),
+            DateInputField(controller: _purchasedAtController, labelText: '购买时间（YYYY-MM-DD）'),
           ],
         ),
         FormSection(
           title: '批次信息',
           children: [
-            TextField(
-              controller: _expiryDateController,
-              decoration: const InputDecoration(labelText: '保质期，例如 2026-05-01'),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('无限期（无保质期）'),
+              value: _noExpiry,
+              onChanged: (value) => setState(() => _noExpiry = value),
             ),
+            const SizedBox(height: 12),
+            DateInputField(controller: _expiryDateController, enabled: !_noExpiry, labelText: '保质期（YYYY-MM-DD）'),
             const SizedBox(height: 12),
             TextField(controller: _locationController, decoration: const InputDecoration(labelText: '存放位置')),
             const SizedBox(height: 12),
@@ -224,3 +255,9 @@ class _RestockFormPageState extends ConsumerState<RestockFormPage> {
     );
   }
 }
+
+
+
+
+
+

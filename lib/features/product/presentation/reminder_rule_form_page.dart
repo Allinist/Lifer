@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:lifer/shared/widgets/app_dropdown_field.dart';
+import 'package:lifer/app/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/app/providers/database_providers.dart';
 import 'package:lifer/data/local/db/app_database.dart';
@@ -6,6 +8,7 @@ import 'package:lifer/features/product/application/reminder_actions.dart';
 import 'package:lifer/features/shared/application/form_options_providers.dart';
 import 'package:lifer/shared/widgets/form_page_scaffold.dart';
 import 'package:lifer/shared/widgets/form_section.dart';
+import 'package:lifer/shared/widgets/time_input_field.dart';
 
 final reminderRuleProvider = FutureProvider.family<ReminderRule?, String>((ref, ruleId) async {
   final db = ref.watch(appDatabaseProvider);
@@ -119,7 +122,7 @@ class _ReminderRuleFormPageState extends ConsumerState<ReminderRuleFormPage> {
         FormSection(
           title: '目标商品与规则类型',
           children: [
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               value: selectedValue,
               decoration: const InputDecoration(labelText: '商品'),
               items: [
@@ -141,7 +144,7 @@ class _ReminderRuleFormPageState extends ConsumerState<ReminderRuleFormPage> {
               ),
             ],
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               key: ValueKey(_ruleType),
               initialValue: _ruleType,
               items: const [
@@ -158,7 +161,7 @@ class _ReminderRuleFormPageState extends ConsumerState<ReminderRuleFormPage> {
               decoration: const InputDecoration(labelText: '提醒类型'),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               key: ValueKey('threshold_$_ruleType'),
               initialValue: _thresholdType,
               items: validThresholds
@@ -182,10 +185,7 @@ class _ReminderRuleFormPageState extends ConsumerState<ReminderRuleFormPage> {
               decoration: InputDecoration(labelText: _thresholdLabelForType(_thresholdType)),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _notifyTimeController,
-              decoration: const InputDecoration(labelText: '提醒时间，例如 09:00'),
-            ),
+            TimeInputField(controller: _notifyTimeController, labelText: '提醒时间（HH:mm）'),
             const SizedBox(height: 12),
             TextField(
               controller: _repeatIntervalController,
@@ -247,3 +247,8 @@ String _thresholdLabelForType(String thresholdType) {
       return '阈值';
   }
 }
+
+
+
+
+

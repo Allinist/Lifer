@@ -3,15 +3,25 @@ class HomeProductCardData {
     required this.productId,
     required this.name,
     required this.productType,
-    required this.topLine,
-    required this.bottomLine,
+    required this.logoUri,
+    required this.brandText,
+    required this.priceText,
+    required this.stockText,
+    required this.expiryText,
+    required this.dailyCostText,
+    required this.stockLevel,
   });
 
   final String productId;
   final String name;
   final String productType;
-  final String topLine;
-  final String bottomLine;
+  final String? logoUri;
+  final String brandText;
+  final String priceText;
+  final String stockText;
+  final String expiryText;
+  final String dailyCostText;
+  final int stockLevel;
 }
 
 class ReminderCardData {

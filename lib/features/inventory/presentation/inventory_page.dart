@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:lifer/shared/widgets/app_dropdown_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lifer/app/theme/app_colors.dart';
@@ -50,6 +51,11 @@ class InventoryPage extends ConsumerWidget {
           },
           icon: const Icon(Icons.remove_shopping_cart_outlined),
           tooltip: '记录消耗',
+        ),
+        IconButton(
+          onPressed: () => context.push('/reminder-rules'),
+          icon: const Icon(Icons.notifications_active_outlined),
+          tooltip: '提醒规则',
         ),
       ],
       children: [
@@ -103,7 +109,7 @@ class _SearchAndSegment extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
+        AppDropdownField<String>(
           value: selectedValue,
           decoration: const InputDecoration(labelText: '选择商品'),
           items: products
@@ -257,3 +263,6 @@ class _InventoryTile extends StatelessWidget {
     );
   }
 }
+
+
+

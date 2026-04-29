@@ -1,9 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:lifer/shared/widgets/app_dropdown_field.dart';
+import 'package:lifer/app/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lifer/core/utils/formatters.dart';
 import 'package:lifer/features/pricing/application/pricing_actions.dart';
 import 'package:lifer/features/shared/application/form_options_providers.dart';
 import 'package:lifer/shared/widgets/form_page_scaffold.dart';
 import 'package:lifer/shared/widgets/form_section.dart';
+import 'package:lifer/shared/widgets/date_input_field.dart';
 
 class PriceRecordEditPage extends ConsumerStatefulWidget {
   const PriceRecordEditPage({
@@ -32,6 +36,7 @@ class PriceRecordEditPage extends ConsumerStatefulWidget {
 class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
   late final TextEditingController _dateController;
   late final TextEditingController _priceController;
+  late final TextEditingController _durablePurchasedAtController;
   late final TextEditingController _quantityController;
   late final TextEditingController _customChannelController;
   late final TextEditingController _customUnitController;
@@ -47,6 +52,7 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
     final parsedQuantity = _parseQuantityLabel(widget.quantity);
     _dateController = TextEditingController(text: widget.recordDate);
     _priceController = TextEditingController(text: widget.price);
+    _durablePurchasedAtController = TextEditingController(text: widget.recordDate);
     _quantityController = TextEditingController(text: parsedQuantity.$1 ?? '');
     _customChannelController = TextEditingController();
     _customUnitController = TextEditingController();
@@ -60,6 +66,7 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
   void dispose() {
     _dateController.dispose();
     _priceController.dispose();
+    _durablePurchasedAtController.dispose();
     _quantityController.dispose();
     _customChannelController.dispose();
     _customUnitController.dispose();
@@ -77,6 +84,15 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
     final selectedProductId = _selectedProductId == '__custom__' ? null : _selectedProductId;
     final customProductName =
         _selectedProductId == '__custom__' ? _customProductController.text.trim() : null;
+    if ((selectedProductId == null || selectedProductId.isEmpty) &&
+        (customProductName == null || customProductName.isEmpty)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('请先关联商品，或填写计价商品名称')),
+        );
+      }
+      return;
+    }
 
     await ref.read(pricingActionsProvider).savePriceRecord(
           recordId: widget.recordId,
@@ -87,6 +103,7 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
           quantity: _quantityController.text,
           unitSymbol: unitSymbol,
           channelName: channelName,
+          durablePurchasedAt: _durablePurchasedAtController.text,
         );
 
     if (mounted) {
@@ -117,6 +134,11 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
     final selectedUnitValue = units.any((item) => item.symbol == _selectedUnitSymbol)
         ? _selectedUnitSymbol
         : (_selectedUnitSymbol == '__custom__' ? '__custom__' : null);
+    final selectedProduct = products.cast<dynamic>().firstWhere(
+          (e) => e.id == _selectedProductId,
+          orElse: () => null,
+        );
+    final isDurable = selectedProduct != null && selectedProduct.productType == 'durable';
 
     return FormPageScaffold(
       title: widget.isEditing ? '编辑价格记录' : '新增价格记录',
@@ -125,7 +147,7 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
         FormSection(
           title: '价格信息',
           children: [
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               value: selectedProductValue,
               decoration: const InputDecoration(labelText: '关联商品'),
               items: [
@@ -147,15 +169,16 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
               ),
             ],
             const SizedBox(height: 12),
-            TextField(
-              controller: _dateController,
-              decoration: const InputDecoration(labelText: '购买日期'),
-            ),
+            DateInputField(controller: _dateController, labelText: '购买日期（YYYY-MM-DD）'),
             const SizedBox(height: 12),
             TextField(
               controller: _priceController,
               decoration: const InputDecoration(labelText: '价格'),
             ),
+            if (isDurable) ...[
+              const SizedBox(height: 12),
+              DateInputField(controller: _durablePurchasedAtController, labelText: '购入日期（YYYY-MM-DD）'),
+            ],
           ],
         ),
         FormSection(
@@ -166,14 +189,14 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
               decoration: const InputDecoration(labelText: '数量'),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               value: selectedUnitValue,
               decoration: const InputDecoration(labelText: '单位'),
               items: [
                 ...units.map(
                   (unit) => DropdownMenuItem(
                     value: unit.symbol,
-                    child: Text('${unit.symbol} · ${unit.name}'),
+                    child: Text(Formatters.unitLabel(symbol: unit.symbol, name: unit.name)),
                   ),
                 ),
                 const DropdownMenuItem(value: '__custom__', child: Text('新建单位')),
@@ -192,7 +215,7 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
               ),
             ],
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               value: selectedChannelValue,
               decoration: const InputDecoration(labelText: '购买渠道'),
               items: [
@@ -240,3 +263,9 @@ class _PriceRecordEditPageState extends ConsumerState<PriceRecordEditPage> {
   final unit = parts.length > 1 ? parts.sublist(1).join(' ') : null;
   return (quantity, unit);
 }
+
+
+
+
+
+

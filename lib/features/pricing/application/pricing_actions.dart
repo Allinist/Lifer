@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+﻿import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/app/providers/database_providers.dart';
 import 'package:lifer/data/local/db/app_database.dart';
@@ -31,6 +31,7 @@ class PricingActions {
     required String quantity,
     required String? unitSymbol,
     required String channelName,
+    String? durablePurchasedAt,
   }) async {
     final resolvedProductId = (productId == null || productId.trim().isEmpty)
         ? await _ensurePricingProduct(productName)
@@ -40,10 +41,15 @@ class PricingActions {
     final channelId = await _ensureChannel(channelName);
     final unitId = unitSymbol == null || unitSymbol.trim().isEmpty ? null : await _ensureUnit(unitSymbol);
 
+    final product = await ((_db.select(_db.products))
+          ..where((tbl) => tbl.id.equals(resolvedProductId)))
+        .getSingleOrNull();
+
     if (recordId == null || recordId.isEmpty) {
+      final createdId = _uuid.v4();
       await _pricingDao.upsertPriceRecord(
         PriceRecordsCompanion.insert(
-          id: _uuid.v4(),
+          id: createdId,
           productId: resolvedProductId,
           channelId: Value(channelId),
           amountMinor: amountMinor,
@@ -54,6 +60,12 @@ class PricingActions {
           createdAt: DateTime.now().millisecondsSinceEpoch,
           updatedAt: DateTime.now().millisecondsSinceEpoch,
         ),
+      );
+      await _upsertDurableUsagePeriod(
+        product: product,
+        priceRecordId: createdId,
+        purchasedAtFallback: purchasedAt,
+        durablePurchasedAt: durablePurchasedAt,
       );
       return;
     }
@@ -66,6 +78,54 @@ class PricingActions {
       channelId: channelId,
       unitId: unitId,
     );
+    await _upsertDurableUsagePeriod(
+      product: product,
+      priceRecordId: recordId,
+      purchasedAtFallback: purchasedAt,
+      durablePurchasedAt: durablePurchasedAt,
+    );
+  }
+
+  Future<void> _upsertDurableUsagePeriod({
+    required Product? product,
+    required String priceRecordId,
+    required int purchasedAtFallback,
+    required String? durablePurchasedAt,
+  }) async {
+    if (product == null || product.productType != 'durable') return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final startAt = _parseDate(durablePurchasedAt ?? '') ?? purchasedAtFallback;
+    final existing = await ((_db.select(_db.durableUsagePeriods))
+          ..where((tbl) => tbl.priceRecordId.equals(priceRecordId))
+          ..limit(1))
+        .getSingleOrNull();
+    if (existing == null) {
+      await _db.into(_db.durableUsagePeriods).insert(
+            DurableUsagePeriodsCompanion.insert(
+              id: _uuid.v4(),
+              productId: product.id,
+              priceRecordId: Value(priceRecordId),
+              startAt: startAt,
+              purchasePriceMinor: Value(product.expectedPriceMinor),
+              currencyCode: const Value('CNY'),
+              averageDailyCostMinor: Value(_computeDailyCostMinor(purchasePriceMinor: product.expectedPriceMinor, startAt: startAt)),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    } else {
+      await ((_db.update(_db.durableUsagePeriods))
+            ..where((tbl) => tbl.id.equals(existing.id)))
+          .write(
+        DurableUsagePeriodsCompanion(
+          startAt: Value(startAt),
+          purchasePriceMinor: Value(product.expectedPriceMinor),
+              currencyCode: const Value('CNY'),
+              averageDailyCostMinor: Value(_computeDailyCostMinor(purchasePriceMinor: product.expectedPriceMinor, startAt: startAt)),
+          updatedAt: Value(now),
+        ),
+      );
+    }
   }
 
   Future<String> _ensurePricingProduct(String? productName) async {
@@ -117,6 +177,18 @@ class PricingActions {
             updatedAt: Value(now),
           ),
         );
+  }
+
+  Future<void> deleteChannel(String channelId) async {
+    final id = channelId.trim();
+    if (id.isEmpty) return;
+    await ((_db.update(_db.priceRecords))..where((tbl) => tbl.channelId.equals(id))).write(
+      const PriceRecordsCompanion(channelId: Value(null)),
+    );
+    await ((_db.update(_db.stockBatches))..where((tbl) => tbl.channelId.equals(id))).write(
+      const StockBatchesCompanion(channelId: Value(null)),
+    );
+    await ((_db.delete(_db.purchaseChannels))..where((tbl) => tbl.id.equals(id))).go();
   }
 
   Future<String?> _ensureChannel(String rawName) async {
@@ -185,9 +257,22 @@ class PricingActions {
     return DateTime.tryParse(text)?.millisecondsSinceEpoch;
   }
 
+  int? _computeDailyCostMinor({
+    required int? purchasePriceMinor,
+    required int startAt,
+    int? endAt,
+  }) {
+    if (purchasePriceMinor == null || purchasePriceMinor <= 0) return null;
+    final end = endAt ?? DateTime.now().millisecondsSinceEpoch;
+    final days = ((end - startAt) / Duration.millisecondsPerDay).ceil();
+    final safeDays = days <= 0 ? 1 : days;
+    return (purchasePriceMinor / safeDays).round();
+  }
+
   double? _parseQuantity(String input) {
     final text = input.trim();
     if (text.isEmpty || text == '--') return null;
     return double.tryParse(text);
   }
 }
+
