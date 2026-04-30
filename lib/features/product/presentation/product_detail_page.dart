@@ -25,6 +25,7 @@ class ProductDetailPage extends ConsumerWidget {
     final consumptions =
         ref.watch(productConsumptionRecordsProvider(productId)).valueOrNull ?? const [];
     final noteLinks = ref.watch(productNoteLinksProvider(productId)).valueOrNull ?? const [];
+    final isDurable = detail?.productTypeLabel == '常驻品';
 
     return Scaffold(
       appBar: AppBar(title: const Text('商品详情')),
@@ -181,74 +182,74 @@ class ProductDetailPage extends ConsumerWidget {
                     ),
             ),
             const SizedBox(height: AppSpacing.section),
-            SectionCard(
-              title: '待处理提醒事件',
-              child: events.isEmpty
-                  ? const ListTile(
-                      title: Text('暂无待处理提醒'),
-                    )
-                  : Column(
-                      children: events
-                          .map(
-                            (event) => ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(event.eventType),
-                              subtitle: Text(
-                                '紧急度 ${event.urgencyScore} · 到期 ${Formatters.fullDateFromMillis(event.dueAt)}',
-                              ),
-                              trailing: Wrap(
-                                spacing: 8,
-                                children: [
-                                  TextButton(
-                                    onPressed: () => _showPostponeOptions(context, ref, event.id),
-                                    child: const Text('稍后提醒'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => ref
-                                        .read(reminderActionsProvider)
-                                        .resolveEvent(event.id),
-                                    child: const Text('已处理'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-            ),
-            const SizedBox(height: AppSpacing.section),
-            SectionCard(
-              title: '提醒规则',
-              child: rules.isEmpty
-                  ? const ListTile(
-                      title: Text('暂无提醒规则'),
-                    )
-                  : Column(
-                      children: rules
-                          .map(
-                            (rule) => ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              onTap: () => context.push('/reminder-rule/edit/${rule.id}?productId=$productId'),
-                              title: Text(_ruleTypeLabel(rule.ruleType)),
-                              subtitle: Text(
-                                '${_thresholdTypeLabel(rule.thresholdType)} ${rule.thresholdValue ?? '--'}'
-                                '${rule.notifyTimeText == null || rule.notifyTimeText!.isEmpty ? '' : ' · 时间 ${rule.notifyTimeText}'}'
-                                '${rule.repeatIntervalHours == null ? '' : ' · 每 ${rule.repeatIntervalHours} 小时'}'
-                                ' · 优先级 ${rule.priority}',
-                              ),
-                              trailing: TextButton(
-                                onPressed: () => ref.read(reminderActionsProvider).setRuleEnabled(
-                                      ruleId: rule.id,
-                                      enabled: !rule.isEnabled,
+            if (!isDurable) ...[
+              SectionCard(
+                title: '待处理提醒事件',
+                child: events.isEmpty
+                    ? const ListTile(
+                        title: Text('暂无待处理提醒'),
+                      )
+                    : Column(
+                        children: events
+                            .map(
+                              (event) => ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(event.eventType),
+                                subtitle: Text(
+                                  '紧急度 ${event.urgencyScore} · 到期 ${Formatters.fullDateFromMillis(event.dueAt)}',
+                                ),
+                                trailing: Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    TextButton(
+                                      onPressed: () => _showPostponeOptions(context, ref, event.id),
+                                      child: const Text('稍后提醒'),
                                     ),
-                                child: Text(rule.isEnabled ? '停用' : '启用'),
+                                    TextButton(
+                                      onPressed: () => ref.read(reminderActionsProvider).resolveEvent(event.id),
+                                      child: const Text('已处理'),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-            ),
-            const SizedBox(height: AppSpacing.section),
+                            )
+                            .toList(),
+                      ),
+              ),
+              const SizedBox(height: AppSpacing.section),
+              SectionCard(
+                title: '提醒规则',
+                child: rules.isEmpty
+                    ? const ListTile(
+                        title: Text('暂无提醒规则'),
+                      )
+                    : Column(
+                        children: rules
+                            .map(
+                              (rule) => ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                onTap: () => context.push('/reminder-rule/edit/${rule.id}?productId=$productId'),
+                                title: Text(_ruleTypeLabel(rule.ruleType)),
+                                subtitle: Text(
+                                  '${_thresholdTypeLabel(rule.thresholdType)} ${rule.thresholdValue ?? '--'}'
+                                  '${rule.notifyTimeText == null || rule.notifyTimeText!.isEmpty ? '' : ' · 时间 ${rule.notifyTimeText}'}'
+                                  '${rule.repeatIntervalHours == null ? '' : ' · 每 ${rule.repeatIntervalHours} 小时'}'
+                                  ' · 优先级 ${rule.priority}',
+                                ),
+                                trailing: TextButton(
+                                  onPressed: () => ref.read(reminderActionsProvider).setRuleEnabled(
+                                        ruleId: rule.id,
+                                        enabled: !rule.isEnabled,
+                                      ),
+                                  child: Text(rule.isEnabled ? '停用' : '启用'),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+              ),
+              const SizedBox(height: AppSpacing.section),
+            ],
             SectionCard(
               title: '最近消耗记录',
               child: consumptions.isEmpty

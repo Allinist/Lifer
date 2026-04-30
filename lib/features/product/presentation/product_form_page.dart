@@ -166,10 +166,10 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
         final nextAction = await _showPostCreateActions(context);
         if (!mounted) return;
         switch (nextAction) {
-          case 'restock': context.go('/restock/create?productId=$createdProductId'); return;
-          case 'pricing': context.go('/pricing/record/edit?productId=$createdProductId'); return;
-          case 'reminder': context.go('/reminder-rule/create?productId=$createdProductId'); return;
-          default: context.go('/product/$createdProductId'); return;
+          case 'restock': context.push('/restock/create?productId=$createdProductId'); return;
+          case 'pricing': context.push('/pricing/record/edit?productId=$createdProductId'); return;
+          case 'reminder': context.push('/reminder-rule/create?productId=$createdProductId'); return;
+          default: context.push('/product/$createdProductId'); return;
         }
       }
     } catch (e) {

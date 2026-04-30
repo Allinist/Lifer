@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/app/providers/database_providers.dart';
 import 'package:lifer/data/local/db/app_database.dart';
 import 'package:lifer/data/local/db/db_write_helper.dart';
+import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
 final reminderActionsProvider = Provider<ReminderActions>((ref) {
@@ -56,6 +57,7 @@ class ReminderActions {
         updatedAt: now,
       ),
     );
+    await _rebuildReminderEventsForProduct(resolvedProductId);
   }
 
   Future<void> resolveEvent(String eventId) {
@@ -75,12 +77,85 @@ class ReminderActions {
   Future<void> setRuleEnabled({
     required String ruleId,
     required bool enabled,
-  }) {
-    return (_db.update(_db.reminderRules)..where((tbl) => tbl.id.equals(ruleId))).write(
+  }) async {
+    await (_db.update(_db.reminderRules)..where((tbl) => tbl.id.equals(ruleId))).write(
       ReminderRulesCompanion(
         isEnabled: Value(enabled),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
+    final rule = await ((_db.select(_db.reminderRules))..where((tbl) => tbl.id.equals(ruleId))).getSingleOrNull();
+    if (rule != null) {
+      await _rebuildReminderEventsForProduct(rule.productId);
+    }
+  }
+
+  Future<void> _rebuildReminderEventsForProduct(String productId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final rules = await ((_db.select(_db.reminderRules))
+          ..where((tbl) => tbl.productId.equals(productId) & tbl.isEnabled.equals(true)))
+        .get();
+    if (rules.isEmpty) {
+      await _db.reminderDao.replaceProductReminderEvents(productId: productId, entries: const []);
+      return;
+    }
+    final product = await ((_db.select(_db.products))..where((tbl) => tbl.id.equals(productId))).getSingleOrNull();
+    final batches = await ((_db.select(_db.stockBatches))
+          ..where((tbl) => tbl.productId.equals(productId) & tbl.isArchived.equals(false)))
+        .get();
+    final total = batches.fold<double>(0, (sum, b) => sum + b.totalQuantity);
+    final remain = batches.fold<double>(0, (sum, b) => sum + b.remainingQuantity);
+    final ratio = total > 0 ? (remain / total) : 0.0;
+    int? nearestExpiry;
+    for (final b in batches) {
+      final e = b.expiryDate;
+      if (e == null) continue;
+      if (nearestExpiry == null || e < nearestExpiry) nearestExpiry = e;
+    }
+    final daysToExpiry = nearestExpiry == null ? null : ((nearestExpiry - now) / Duration.millisecondsPerDay).floor();
+    final entries = <ReminderEventsCompanion>[];
+    for (final rule in rules) {
+      var triggered = false;
+      var urgency = (40 + rule.priority * 5).clamp(10, 95);
+      if (rule.ruleType == 'restock') {
+        if (rule.thresholdType == 'quantity') {
+          final t = rule.thresholdValue;
+          if (t != null) triggered = remain <= t;
+        } else if (rule.thresholdType == 'ratio') {
+          final t = rule.thresholdValue;
+          if (t != null) triggered = ratio <= t;
+        }
+        if (triggered && remain <= 0) urgency = 95;
+      } else if (rule.ruleType == 'expiry') {
+        final t = rule.thresholdValue;
+        if (rule.thresholdType == 'days_before_expiry' && t != null && daysToExpiry != null) {
+          triggered = daysToExpiry <= t;
+          if (daysToExpiry <= 0) urgency = 95;
+        }
+      }
+      if (!triggered) continue;
+      entries.add(
+        ReminderEventsCompanion.insert(
+          id: _uuid.v4(),
+          ruleId: rule.id,
+          productId: productId,
+          eventType: rule.ruleType,
+          urgencyScore: urgency,
+          dueAt: Value(now),
+          snapshotJson: Value(jsonEncode({
+            'productName': product?.name,
+            'remainingQuantity': remain,
+            'totalQuantity': total,
+            'ratio': ratio,
+            'daysToExpiry': daysToExpiry,
+            'thresholdType': rule.thresholdType,
+            'thresholdValue': rule.thresholdValue,
+          })),
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    }
+    await _db.reminderDao.replaceProductReminderEvents(productId: productId, entries: entries);
   }
 }

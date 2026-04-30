@@ -312,7 +312,7 @@ class _ConsumptionFormPageState extends ConsumerState<ConsumptionFormPage> {
             const SizedBox(height: 12),
             TextField(
               controller: _notesController,
-              maxLines: 3,
+              maxLines: 1,
               decoration: const InputDecoration(labelText: '备注'),
             ),
             if (widget.isEditing) ...[

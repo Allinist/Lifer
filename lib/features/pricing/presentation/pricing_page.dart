@@ -498,13 +498,12 @@ class _PriceLineChart extends StatelessWidget {
 
 Set<int> _xAxisMarkerIndexes(int length) {
   if (length <= 1) return {0};
-  if (length <= 4) return {for (var i = 0; i < length; i++) i};
+  if (length <= 4) return {for (var i = 0; i < length - 1; i++) i};
   return {
     0,
     (length * 0.25).round().clamp(0, length - 1),
     (length * 0.5).round().clamp(0, length - 1),
     (length * 0.75).round().clamp(0, length - 1),
-    length - 1,
   };
 }
 

@@ -45,9 +45,8 @@ class AppLineChart extends StatelessWidget {
     }
 
     final ys = points.map((p) => p.y).toList();
-    final minY = ys.reduce((a, b) => a < b ? a : b);
-    final maxY = ys.reduce((a, b) => a > b ? a : b);
-    final hasSingleValue = minY == maxY;
+    final minDataY = ys.reduce((a, b) => a < b ? a : b);
+    final maxDataY = ys.reduce((a, b) => a > b ? a : b);
     var maxAdjacentChangeRatio = 0.0;
     for (var i = 1; i < ys.length; i++) {
       final prev = ys[i - 1].abs();
@@ -60,23 +59,30 @@ class AppLineChart extends StatelessWidget {
       }
     }
     final useCurvedLine = maxAdjacentChangeRatio < 0.72;
-    final rawMin = hasSingleValue ? (minY - 1) : (minY * 0.96);
-    final safeMin = forceNonNegativeMinY && minY >= 0
-        ? (rawMin < 0 ? 0.0 : rawMin)
-        : rawMin;
-    final ySpan = (hasSingleValue ? 2.0 : ((maxY * 1.04) - safeMin)).abs();
-    final yInterval = ySpan <= 0 ? 1.0 : (ySpan / 4);
+
+    final minCandidate = forceNonNegativeMinY && minDataY >= 0 ? 0.0 : minDataY;
+    final spanCandidate = (maxDataY - minCandidate).abs();
+    final roughStep = spanCandidate <= 0 ? 5.0 : (spanCandidate / 4);
+    final yInterval = _niceStep(roughStep < 5 ? 5 : roughStep);
+    var minY = (minCandidate / yInterval).floorToDouble() * yInterval;
+    var maxY = (maxDataY / yInterval).ceilToDouble() * yInterval;
+    if (maxY <= minY) {
+      maxY = minY + yInterval;
+    }
+    if (forceNonNegativeMinY && minDataY >= 0 && minY < 0) {
+      minY = 0;
+    }
 
     return SizedBox(
       height: height,
       child: LineChart(
         LineChartData(
-          minY: safeMin,
-          maxY: hasSingleValue ? maxY + 1 : maxY * 1.04,
+          minY: minY,
+          maxY: maxY,
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: hasSingleValue ? 1 : yInterval,
+            horizontalInterval: yInterval,
           ),
           borderData: FlBorderData(show: false),
           lineTouchData: LineTouchData(
@@ -107,7 +113,7 @@ class AppLineChart extends StatelessWidget {
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 56,
-                interval: hasSingleValue ? 1 : yInterval,
+                interval: yInterval,
                 getTitlesWidget: (value, meta) => Text(value.toStringAsFixed(0)),
               ),
             ),
@@ -147,5 +153,57 @@ class AppLineChart extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+double _niceStep(double value) {
+  if (value <= 0) return 5;
+  final exponent = (value <= 1) ? 0 : value.logBase10Floor();
+  final base = _pow10(exponent);
+  final fraction = value / base;
+  double niceFraction;
+  if (fraction <= 1) {
+    niceFraction = 1;
+  } else if (fraction <= 2) {
+    niceFraction = 2;
+  } else if (fraction <= 5) {
+    niceFraction = 5;
+  } else {
+    niceFraction = 10;
+  }
+  final step = niceFraction * base;
+  return step < 5 ? 5 : step;
+}
+
+double _pow10(int exp) {
+  var result = 1.0;
+  if (exp >= 0) {
+    for (var i = 0; i < exp; i++) {
+      result *= 10;
+    }
+  } else {
+    for (var i = 0; i < -exp; i++) {
+      result /= 10;
+    }
+  }
+  return result;
+}
+
+extension on double {
+  int logBase10Floor() {
+    var n = this;
+    var exp = 0;
+    if (n >= 1) {
+      while (n >= 10) {
+        n /= 10;
+        exp++;
+      }
+      return exp;
+    }
+    while (n > 0 && n < 1) {
+      n *= 10;
+      exp--;
+    }
+    return exp;
   }
 }

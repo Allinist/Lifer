@@ -347,23 +347,23 @@ int? _durableDailyCostAt({
   required List<DurableUsagePeriod> periods,
   required int timestamp,
 }) {
-  DurableUsagePeriod? current;
+  var sum = 0;
+  var hasAny = false;
   for (final p in periods) {
-    final ended = p.endAt != null && p.endAt! < timestamp;
-    if (p.startAt > timestamp || ended) continue;
-    if (current == null || p.startAt > current.startAt) {
-      current = p;
-    }
+    if (p.startAt > timestamp) continue;
+    final price = p.purchasePriceMinor;
+    if (price == null || price <= 0) continue;
+    final periodEnd = p.endAt;
+    final effectiveEnd = periodEnd == null
+        ? timestamp
+        : (timestamp <= periodEnd ? timestamp : periodEnd);
+    if (effectiveEnd < p.startAt) continue;
+    final days = ((effectiveEnd - p.startAt) / Duration.millisecondsPerDay).ceil();
+    final safeDays = days <= 0 ? 1 : days;
+    sum += (price / safeDays).round();
+    hasAny = true;
   }
-  if (current == null) return null;
-  final price = current.purchasePriceMinor;
-  if (price == null || price <= 0) return null;
-  final effectiveEnd = current.endAt == null
-      ? timestamp
-      : (timestamp < current.endAt! ? timestamp : current.endAt!);
-  final days = ((effectiveEnd - current.startAt) / Duration.millisecondsPerDay).ceil();
-  final safeDays = days <= 0 ? 1 : days;
-  return (price / safeDays).round();
+  return hasAny ? sum : null;
 }
 
 

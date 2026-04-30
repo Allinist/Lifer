@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lifer/app/providers/database_providers.dart';
 import 'package:lifer/data/local/db/app_database.dart';
 import 'package:lifer/data/local/db/db_write_helper.dart';
+import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
 final inventoryActionsProvider = Provider<InventoryActions>((ref) {
@@ -39,6 +40,7 @@ class InventoryActions {
             unitSymbol: unitSymbol,
             productType: 'consumable',
           );
+    final product = await ((_db.select(_db.products))..where((tbl) => tbl.id.equals(resolvedProductId))).getSingleOrNull();
     final unitId = await _helper.ensureUnit(unitSymbol);
     final channelId = await _ensureChannel(channelName);
     final priceId = _uuid.v4();
@@ -47,17 +49,18 @@ class InventoryActions {
     final parsedQuantity = _parseDouble(quantity);
     final parsedUnitPriceMinor = parsedQuantity > 0 ? (parsedAmountMinor / parsedQuantity).round() : null;
 
+    final purchasedAtMs = _parseDate(purchasedAt) ?? now;
     await _db.inventoryDao.createRestockBundle(
       priceEntry: PriceRecordsCompanion.insert(
         id: priceId,
         productId: resolvedProductId,
         channelId: Value(channelId),
         amountMinor: parsedAmountMinor,
-        currencyCode: 'CNY',
+        currencyCode: (product?.currencyCode ?? 'CNY').toUpperCase(),
         quantity: Value(parsedQuantity),
         unitId: Value(unitId),
         unitPriceMinor: Value(parsedUnitPriceMinor),
-        purchasedAt: _parseDate(purchasedAt) ?? now,
+        purchasedAt: purchasedAtMs,
         createdAt: now,
         updatedAt: now,
       ),
@@ -69,7 +72,7 @@ class InventoryActions {
         totalQuantity: parsedQuantity,
         remainingQuantity: parsedQuantity,
         unitId: unitId,
-        purchasedAt: Value(_parseDate(purchasedAt)),
+        purchasedAt: Value(purchasedAtMs),
         expiryDate: Value(_parseDate(expiryDate)),
         storageNotes: Value(locationName.trim().isEmpty ? null : locationName.trim()),
         batchLabel: Value(null),
@@ -83,11 +86,21 @@ class InventoryActions {
         priceRecordId: Value(priceId),
         quantity: parsedQuantity,
         unitId: unitId,
-        occurredAt: _parseDate(purchasedAt) ?? now,
+        occurredAt: purchasedAtMs,
         notes: Value(notes.trim().isEmpty ? null : notes.trim()),
         createdAt: now,
       ),
     );
+    if (product?.productType == 'durable') {
+      await _createDurableUsageFromRestock(
+        productId: resolvedProductId,
+        priceRecordId: priceId,
+        purchasedAt: purchasedAtMs,
+        purchasePriceMinor: parsedAmountMinor,
+        currencyCode: (product?.currencyCode ?? 'CNY').toUpperCase(),
+      );
+    }
+    await _rebuildReminderEventsForProduct(resolvedProductId);
   }
 
   Future<void> createConsumption({
@@ -110,6 +123,7 @@ class InventoryActions {
             unitSymbol: unitSymbol,
             productType: 'consumable',
           );
+    final product = await ((_db.select(_db.products))..where((tbl) => tbl.id.equals(resolvedProductId))).getSingleOrNull();
     final unitId = await _helper.ensureUnit(unitSymbol);
     final totalQty = _parseDouble(quantity);
     var remainingQty = totalQty;
@@ -183,6 +197,14 @@ class InventoryActions {
       consumptionEntries: entries,
       batchRemainingById: nextRemainingByBatchId,
     );
+    if (product?.productType == 'durable') {
+      await _closeDurableUsageForConsumption(
+        productId: resolvedProductId,
+        occurredAt: effectiveOccurredAt,
+        selectedBatchId: selectedBatch?.id,
+      );
+    }
+    await _rebuildReminderEventsForProduct(resolvedProductId);
   }
 
   Future<void> updateStockBatch({
@@ -222,6 +244,10 @@ class InventoryActions {
               updatedAt: Value(now),
             ),
     );
+    final batch = await ((_db.select(_db.stockBatches))..where((tbl) => tbl.id.equals(batchId))).getSingleOrNull();
+    if (batch != null) {
+      await _rebuildReminderEventsForProduct(batch.productId);
+    }
   }
 
   Future<void> updateConsumption({
@@ -361,6 +387,15 @@ class InventoryActions {
         previousRemainingQuantity: previousRemainingQuantity,
         batchRemainingById: adjustedRemainingById,
       );
+      final product = await ((_db.select(_db.products))..where((tbl) => tbl.id.equals(productId))).getSingleOrNull();
+      if (product?.productType == 'durable') {
+        await _closeDurableUsageForConsumption(
+          productId: productId,
+          occurredAt: effectiveOccurredAt,
+          selectedBatchId: selectedBatch?.id,
+        );
+      }
+      await _rebuildReminderEventsForProduct(productId);
       return;
     }
 
@@ -380,15 +415,31 @@ class InventoryActions {
       previousBatchId: original.batchId,
       previousRemainingQuantity: previousRemainingQuantity,
     );
+    final product = await ((_db.select(_db.products))..where((tbl) => tbl.id.equals(productId))).getSingleOrNull();
+    if (product?.productType == 'durable') {
+      await _closeDurableUsageForConsumption(
+        productId: productId,
+        occurredAt: _parseDate(occurredAt) ?? now,
+        selectedBatchId: targetBatchId,
+      );
+    }
+    await _rebuildReminderEventsForProduct(productId);
   }
 
   Future<void> archiveStockBatch(String batchId) {
-    return _db.inventoryDao.archiveStockBatch(batchId);
+    return (() async {
+      final batch = await ((_db.select(_db.stockBatches))..where((tbl) => tbl.id.equals(batchId))).getSingleOrNull();
+      await _db.inventoryDao.archiveStockBatch(batchId);
+      if (batch != null) {
+        await _rebuildReminderEventsForProduct(batch.productId);
+      }
+    })();
   }
 
   Future<void> deleteStockBatch(String batchId) async {
     final id = batchId.trim();
     if (id.isEmpty) return;
+    final batch = await ((_db.select(_db.stockBatches))..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
     await ((_db.update(_db.restockRecords))..where((tbl) => tbl.batchId.equals(id))).write(
       const RestockRecordsCompanion(batchId: Value(null)),
     );
@@ -400,6 +451,9 @@ class InventoryActions {
     );
     await ((_db.delete(_db.stockBatchLocations))..where((tbl) => tbl.batchId.equals(id))).go();
     await ((_db.delete(_db.stockBatches))..where((tbl) => tbl.id.equals(id))).go();
+    if (batch != null) {
+      await _rebuildReminderEventsForProduct(batch.productId);
+    }
   }
 
   Future<void> deleteConsumption(String consumptionId) async {
@@ -423,6 +477,144 @@ class InventoryActions {
       consumptionId: consumptionId,
       batchId: record.batchId,
       restoredRemainingQuantity: restoredRemainingQuantity,
+    );
+    await _rebuildReminderEventsForProduct(record.productId);
+  }
+
+  Future<void> _rebuildReminderEventsForProduct(String productId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final rules = await ((_db.select(_db.reminderRules))
+          ..where((tbl) => tbl.productId.equals(productId) & tbl.isEnabled.equals(true)))
+        .get();
+    if (rules.isEmpty) {
+      await _db.reminderDao.replaceProductReminderEvents(productId: productId, entries: const []);
+      return;
+    }
+
+    final product = await ((_db.select(_db.products))..where((tbl) => tbl.id.equals(productId))).getSingleOrNull();
+    final batches = await ((_db.select(_db.stockBatches))
+          ..where((tbl) => tbl.productId.equals(productId) & tbl.isArchived.equals(false)))
+        .get();
+    final total = batches.fold<double>(0, (sum, b) => sum + b.totalQuantity);
+    final remain = batches.fold<double>(0, (sum, b) => sum + b.remainingQuantity);
+    final ratio = total > 0 ? (remain / total) : 0.0;
+    int? nearestExpiry;
+    for (final b in batches) {
+      final e = b.expiryDate;
+      if (e == null) continue;
+      if (nearestExpiry == null || e < nearestExpiry) nearestExpiry = e;
+    }
+    final daysToExpiry = nearestExpiry == null ? null : ((nearestExpiry - now) / Duration.millisecondsPerDay).floor();
+
+    final entries = <ReminderEventsCompanion>[];
+    for (final rule in rules) {
+      var triggered = false;
+      var urgency = (40 + rule.priority * 5).clamp(10, 95);
+      if (rule.ruleType == 'restock') {
+        if (rule.thresholdType == 'quantity') {
+          final t = rule.thresholdValue;
+          if (t != null) triggered = remain <= t;
+        } else if (rule.thresholdType == 'ratio') {
+          final t = rule.thresholdValue;
+          if (t != null) triggered = ratio <= t;
+        }
+        if (triggered && remain <= 0) urgency = 95;
+      } else if (rule.ruleType == 'expiry') {
+        final t = rule.thresholdValue;
+        if (rule.thresholdType == 'days_before_expiry' && t != null && daysToExpiry != null) {
+          triggered = daysToExpiry <= t;
+          if (daysToExpiry <= 0) urgency = 95;
+        }
+      }
+      if (!triggered) continue;
+      entries.add(
+        ReminderEventsCompanion.insert(
+          id: _uuid.v4(),
+          ruleId: rule.id,
+          productId: productId,
+          eventType: rule.ruleType,
+          urgencyScore: urgency,
+          dueAt: Value(now),
+          snapshotJson: Value(jsonEncode({
+            'productName': product?.name,
+            'remainingQuantity': remain,
+            'totalQuantity': total,
+            'ratio': ratio,
+            'daysToExpiry': daysToExpiry,
+            'thresholdType': rule.thresholdType,
+            'thresholdValue': rule.thresholdValue,
+          })),
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    }
+    await _db.reminderDao.replaceProductReminderEvents(productId: productId, entries: entries);
+  }
+
+  Future<void> _createDurableUsageFromRestock({
+    required String productId,
+    required String priceRecordId,
+    required int purchasedAt,
+    required int purchasePriceMinor,
+    required String currencyCode,
+  }) async {
+    if (purchasePriceMinor <= 0) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.into(_db.durableUsagePeriods).insert(
+          DurableUsagePeriodsCompanion.insert(
+            id: _uuid.v4(),
+            productId: productId,
+            priceRecordId: Value(priceRecordId),
+            startAt: purchasedAt,
+            purchasePriceMinor: Value(purchasePriceMinor),
+            currencyCode: Value(currencyCode),
+            averageDailyCostMinor: Value(_computeDailyCostMinor(
+              purchasePriceMinor: purchasePriceMinor,
+              startAt: purchasedAt,
+            )),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+  }
+
+  Future<void> _closeDurableUsageForConsumption({
+    required String productId,
+    required int occurredAt,
+    String? selectedBatchId,
+  }) async {
+    String? targetPriceRecordId;
+    if (selectedBatchId != null && selectedBatchId.trim().isNotEmpty) {
+      final b = await ((_db.select(_db.stockBatches))..where((tbl) => tbl.id.equals(selectedBatchId.trim()))).getSingleOrNull();
+      targetPriceRecordId = b?.sourcePriceRecordId;
+    }
+    DurableUsagePeriod? target;
+    if (targetPriceRecordId != null && targetPriceRecordId.isNotEmpty) {
+      target = await ((_db.select(_db.durableUsagePeriods))
+            ..where((tbl) => tbl.productId.equals(productId) & tbl.priceRecordId.equals(targetPriceRecordId))
+            ..orderBy([(tbl) => OrderingTerm(expression: tbl.startAt, mode: OrderingMode.desc)])
+            ..limit(1))
+          .getSingleOrNull();
+    } else {
+      target = await ((_db.select(_db.durableUsagePeriods))
+            ..where((tbl) => tbl.productId.equals(productId) & tbl.endAt.isNull())
+            ..orderBy([(tbl) => OrderingTerm(expression: tbl.startAt)])
+            ..limit(1))
+          .getSingleOrNull();
+    }
+    if (target == null) return;
+    final endAt = occurredAt < target.startAt ? target.startAt : occurredAt;
+    await ((_db.update(_db.durableUsagePeriods))..where((tbl) => tbl.id.equals(target.id))).write(
+      DurableUsagePeriodsCompanion(
+        endAt: Value(endAt),
+        averageDailyCostMinor: Value(_computeDailyCostMinor(
+          purchasePriceMinor: target.purchasePriceMinor,
+          startAt: target.startAt,
+          endAt: endAt,
+        )),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
     );
   }
 
@@ -477,5 +669,17 @@ class InventoryActions {
     final text = input.trim();
     if (text.isEmpty) return null;
     return DateTime.tryParse(text)?.millisecondsSinceEpoch;
+  }
+
+  int? _computeDailyCostMinor({
+    required int? purchasePriceMinor,
+    required int startAt,
+    int? endAt,
+  }) {
+    if (purchasePriceMinor == null || purchasePriceMinor <= 0) return null;
+    final end = endAt ?? DateTime.now().millisecondsSinceEpoch;
+    final days = ((end - startAt) / Duration.millisecondsPerDay).ceil();
+    final safeDays = days <= 0 ? 1 : days;
+    return (purchasePriceMinor / safeDays).round();
   }
 }

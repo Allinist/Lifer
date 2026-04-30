@@ -44,6 +44,7 @@ class PricingActions {
     final product = await ((_db.select(_db.products))
           ..where((tbl) => tbl.id.equals(resolvedProductId)))
         .getSingleOrNull();
+    final resolvedCurrency = (product?.currencyCode ?? 'CNY').toUpperCase();
 
     if (recordId == null || recordId.isEmpty) {
       final createdId = _uuid.v4();
@@ -53,7 +54,7 @@ class PricingActions {
           productId: resolvedProductId,
           channelId: Value(channelId),
           amountMinor: amountMinor,
-          currencyCode: 'CNY',
+          currencyCode: resolvedCurrency,
           quantity: Value(_parseQuantity(quantity)),
           unitId: Value(unitId),
           purchasedAt: purchasedAt,
@@ -107,8 +108,8 @@ class PricingActions {
               priceRecordId: Value(priceRecordId),
               startAt: startAt,
               purchasePriceMinor: Value(product.expectedPriceMinor),
-              currencyCode: const Value('CNY'),
-              averageDailyCostMinor: Value(_computeDailyCostMinor(purchasePriceMinor: product.expectedPriceMinor, startAt: startAt)),
+              currencyCode: Value(resolvedCurrency),
+              averageDailyCostMinor: Value(_computeDailyCostMinor(purchasePriceMinor: amountMinor, startAt: startAt)),
               createdAt: now,
               updatedAt: now,
             ),
@@ -120,8 +121,8 @@ class PricingActions {
         DurableUsagePeriodsCompanion(
           startAt: Value(startAt),
           purchasePriceMinor: Value(product.expectedPriceMinor),
-              currencyCode: const Value('CNY'),
-              averageDailyCostMinor: Value(_computeDailyCostMinor(purchasePriceMinor: product.expectedPriceMinor, startAt: startAt)),
+              currencyCode: Value(resolvedCurrency),
+              averageDailyCostMinor: Value(_computeDailyCostMinor(purchasePriceMinor: amountMinor, startAt: startAt)),
           updatedAt: Value(now),
         ),
       );

@@ -68,7 +68,7 @@ class ProductActions {
             updatedAt: now,
           ),
         );
-    if (productType == 'durable') {
+    if (productType == 'durable' || productType == 'pricing_only') {
       final initialPrice = _parseMoney(targetPrice);
       final purchasedAt = _parseDate(durablePurchasedAt ?? '') ?? now;
       if (initialPrice != null && initialPrice > 0) {
@@ -87,6 +87,9 @@ class ProductActions {
                 updatedAt: now,
               ),
             );
+        if (productType == 'pricing_only') {
+          return productId;
+        }
         await _db.into(_db.durableUsagePeriods).insert(
               DurableUsagePeriodsCompanion.insert(
                 id: _uuid.v4(),
